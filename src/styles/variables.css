@@ -1,0 +1,48 @@
+:root {
+  /* Typography */
+  --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-size-h1: 2.5rem;
+  --font-size-h2: 2rem;
+  --font-size-h3: 1.75rem;
+  --font-size-body: 1rem;
+  --font-size-small: 0.875rem;
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+
+  /* Colors */
+  --color-background: #FFFFFF;
+  --color-text: #1A1A1A;
+  --color-text-light: #666666;
+  --color-border: #E5E5E5;
+  --color-primary: #0066FF;
+  --color-primary-light: rgba(0, 102, 255, 0.1);
+  --color-error: #FF3B30;
+  --color-error-light: rgba(255, 59, 48, 0.1);
+  --color-success: #34C759;
+  --color-success-light: rgba(52, 199, 89, 0.1);
+  --color-warning: #FF9500;
+  --color-warning-light: rgba(255, 149, 0, 0.1);
+
+  /* Component Specific */
+  --button-height: 48px;
+  --button-padding: 0 24px;
+  --button-border-radius: 8px;
+  
+  --input-height: 48px;
+  --input-padding: 0 16px;
+  --input-border-radius: 8px;
+  
+  --card-padding: 24px;
+  --card-border-radius: 12px;
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  --modal-padding: 32px;
+  --modal-border-radius: 16px;
+  --modal-overlay: rgba(0, 0, 0, 0.5);
+} 

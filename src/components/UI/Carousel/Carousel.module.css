@@ -139,6 +139,12 @@
   align-items: center;
 }
 
+/* Single item - show as square thumbnail */
+.mediaGrid.singleItem {
+  grid-template-columns: 80px; /* Fixed width for single item */
+  justify-content: start; /* Align to left */
+}
+
 .gridItem {
   aspect-ratio: 1;
   border-radius: var(--border-radius);
@@ -217,6 +223,12 @@
     grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
     gap: var(--spacing-xs);
     height: 60px; /* Even more compact on mobile */
+  }
+
+  /* Single item - show as square thumbnail on mobile */
+  .mediaGrid.singleItem {
+    grid-template-columns: 60px; /* Fixed width for single item on mobile */
+    justify-content: start; /* Align to left */
   }
 
   .gridPlayButton {

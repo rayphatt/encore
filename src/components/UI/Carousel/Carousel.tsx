@@ -107,7 +107,7 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
         {/* Main content */}
         <div className={styles.carouselContent}>
           {/* Always show grid layout for consistent sizing */}
-          <div className={styles.mediaGrid}>
+          <div className={`${styles.mediaGrid} ${items.length === 1 ? styles.singleItem : ''}`}>
             {items.map((item, index) => {
               const itemUrl = item.file ? URL.createObjectURL(item.file) : item.url;
               const isItemVideo = item.type === 'video';

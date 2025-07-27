@@ -61,6 +61,11 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
   if (items.length === 0) return null;
 
   const currentItem = items[currentIndex];
+  if (!currentItem) {
+    console.warn('Carousel: currentItem is undefined', { currentIndex, items });
+    return null;
+  }
+
   const isVideo = currentItem.type === 'video';
   const mediaUrl = currentItem.file ? URL.createObjectURL(currentItem.file) : currentItem.url;
 
@@ -87,8 +92,10 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                 src={mediaUrl}
                 className={styles.video}
                 onEnded={handleVideoEnded}
+                onError={(e) => console.error('Video error:', e)}
                 muted
                 loop
+                preload="metadata"
               />
               <button 
                 className={`${styles.playButton} ${isPlaying ? styles.playing : ''}`}

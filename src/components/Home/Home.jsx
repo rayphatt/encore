@@ -910,10 +910,31 @@ const Home = () => {
 
   // Helper function to convert files to media items for carousel
   const convertFilesToMediaItems = (files) => {
-    return files.map(file => ({
-      file,
-      type: file.type.startsWith('video/') ? 'video' : 'image'
-    }));
+    if (!files || files.length === 0) return [];
+    
+    return files.map(file => {
+      // Handle both File objects and string URLs
+      if (typeof file === 'string') {
+        // It's a URL string (existing image)
+        return {
+          url: file,
+          type: 'image'
+        };
+      } else if (file instanceof File) {
+        // It's a File object (new upload)
+        return {
+          file,
+          type: file.type.startsWith('video/') ? 'video' : 'image'
+        };
+      } else {
+        // Fallback for other types
+        console.warn('Unknown file type:', file);
+        return {
+          url: file,
+          type: 'image'
+        };
+      }
+    });
   };
 
   // Quick venue edit function
@@ -1167,7 +1188,13 @@ const Home = () => {
           {concert.images && concert.images.length > 0 && (
             <Carousel 
               items={convertFilesToMediaItems(concert.images)}
-              onItemClick={(item, index) => handleImageClick(item.file || item.url, { stopPropagation: () => {} })}
+              onItemClick={(item, index) => {
+                try {
+                  handleImageClick(item.file || item.url, { stopPropagation: () => {} });
+                } catch (error) {
+                  console.error('Error handling image click:', error);
+                }
+              }}
               className={styles.concertCarousel}
             />
           )}
@@ -1312,7 +1339,13 @@ const Home = () => {
               {concert.images && concert.images.length > 0 && (
                 <Carousel 
                   items={convertFilesToMediaItems(concert.images)}
-                  onItemClick={(item, index) => handleImageClick(item.file || item.url, { stopPropagation: () => {} })}
+                  onItemClick={(item, index) => {
+                    try {
+                      handleImageClick(item.file || item.url, { stopPropagation: () => {} });
+                    } catch (error) {
+                      console.error('Error handling image click:', error);
+                    }
+                  }}
                   className={styles.concertCarousel}
                 />
               )}

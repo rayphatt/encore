@@ -991,4 +991,63 @@
   max-height: 100%;
   object-fit: contain;
   border-radius: var(--card-border-radius);
+}
+
+/* Carousel Styles */
+.concertCarousel {
+  margin-bottom: var(--spacing-sm);
+  border-radius: var(--card-border-radius);
+  overflow: hidden;
+}
+
+.concertCarousel :global(.carousel) {
+  height: 200px;
+}
+
+.concertCarousel :global(.videoContainer) {
+  height: 200px;
+}
+
+.concertCarousel :global(.image) {
+  height: 200px;
+}
+
+/* Mobile carousel adjustments */
+@media (max-width: 768px) {
+  .concertCarousel :global(.carousel) {
+    height: 150px;
+  }
+
+  .concertCarousel :global(.videoContainer) {
+    height: 150px;
+  }
+
+  .concertCarousel :global(.image) {
+    height: 150px;
+  }
+}
+
+/* Preview carousel styles */
+.previewCarousel {
+  margin-bottom: var(--spacing-sm);
+  height: 120px;
+}
+
+.previewCarousel :global(.carousel) {
+  height: 120px;
+}
+
+.previewCarousel :global(.videoContainer) {
+  height: 120px;
+}
+
+.previewCarousel :global(.image) {
+  height: 120px;
+}
+
+.previewThumbnails {
+  display: flex;
+  gap: var(--spacing-xs);
+  overflow-x: auto;
+  padding: var(--spacing-xs) 0;
 } 

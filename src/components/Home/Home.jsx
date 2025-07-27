@@ -15,6 +15,7 @@ import { useToast } from '../../contexts/ToastContext';
 import { searchService } from '../../services/search';
 import { getRatingColor, getRatingBackgroundColor } from '../../utils/ratingColors';
 import ArtistImage from '../UI/ArtistImage/ArtistImage';
+import Carousel from '../UI/Carousel/Carousel';
 
 const FREE_CONCERT_LIMIT = 10;
 
@@ -699,12 +700,14 @@ const Home = () => {
   const handleImageUpload = (event, isEditing = false) => {
     
     const files = Array.from(event.target.files);
-    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    const mediaFiles = files.filter(file => 
+      file.type.startsWith('image/') || file.type.startsWith('video/')
+    );
     
     if (isEditing) {
-      setEditingImages(prev => [...prev, ...imageFiles]);
+      setEditingImages(prev => [...prev, ...mediaFiles]);
     } else {
-      setSelectedImages(prev => [...prev, ...imageFiles]);
+      setSelectedImages(prev => [...prev, ...mediaFiles]);
     }
   };
 
@@ -846,22 +849,30 @@ const Home = () => {
 
   const renderImagePreview = (images, onRemove, isEditing = false) => (
     <div className={styles.imagePreviewContainer}>
-      {images.map((image, index) => (
-        <div key={index} className={styles.imagePreview}>
-          <img 
-            src={typeof image === 'string' ? image : URL.createObjectURL(image)} 
-            alt={`Preview ${index + 1}`} 
-            className={styles.previewImage}
-          />
-          <button
-            type="button"
-            className={styles.removeImage}
-            onClick={() => onRemove(index, isEditing)}
-          >
-            ×
-          </button>
-        </div>
-      ))}
+      {images.length > 0 && (
+        <Carousel 
+          items={convertFilesToMediaItems(images)}
+          className={styles.previewCarousel}
+        />
+      )}
+      <div className={styles.previewThumbnails}>
+        {images.map((image, index) => (
+          <div key={index} className={styles.imagePreview}>
+            <img 
+              src={typeof image === 'string' ? image : URL.createObjectURL(image)} 
+              alt={`Preview ${index + 1}`} 
+              className={styles.previewImage}
+            />
+            <button
+              type="button"
+              className={styles.removeImage}
+              onClick={() => onRemove(index, isEditing)}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 
@@ -895,6 +906,14 @@ const Home = () => {
     event.stopPropagation(); // Prevent concert card click
     setSelectedImage(image);
     setShowImageModal(true);
+  };
+
+  // Helper function to convert files to media items for carousel
+  const convertFilesToMediaItems = (files) => {
+    return files.map(file => ({
+      file,
+      type: file.type.startsWith('video/') ? 'video' : 'image'
+    }));
   };
 
   // Quick venue edit function
@@ -1146,22 +1165,11 @@ const Home = () => {
           </div>
 
           {concert.images && concert.images.length > 0 && (
-            <div className={styles.imageGallery}>
-              {concert.images.map((image, index) => (
-                <div 
-                  key={index} 
-                  className={styles.imageContainer}
-                  onClick={(e) => handleImageClick(image, e)}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                >
-                  <img 
-                    src={typeof image === 'string' ? image : URL.createObjectURL(image)} 
-                    alt={`Concert ${index + 1}`} 
-                  />
-                </div>
-              ))}
-            </div>
+            <Carousel 
+              items={convertFilesToMediaItems(concert.images)}
+              onItemClick={(item, index) => handleImageClick(item.file || item.url, { stopPropagation: () => {} })}
+              className={styles.concertCarousel}
+            />
           )}
 
           {concert.notes && (
@@ -1302,22 +1310,11 @@ const Home = () => {
               </div>
 
               {concert.images && concert.images.length > 0 && (
-                            <div className={styles.imageGallery}>
-              {concert.images.map((image, index) => (
-                <div 
-                  key={index} 
-                  className={styles.imageContainer}
-                  onClick={(e) => handleImageClick(image, e)}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                >
-                  <img 
-                    src={typeof image === 'string' ? image : URL.createObjectURL(image)} 
-                    alt={`Concert ${index + 1}`} 
-                  />
-                </div>
-              ))}
-            </div>
+                <Carousel 
+                  items={convertFilesToMediaItems(concert.images)}
+                  onItemClick={(item, index) => handleImageClick(item.file || item.url, { stopPropagation: () => {} })}
+                  className={styles.concertCarousel}
+                />
               )}
 
               {concert.notes && (
@@ -1511,7 +1508,7 @@ const Home = () => {
               <input
                 type="file"
                 multiple
-                accept="image/*"
+                accept="image/*,video/*"
                 onChange={(e) => handleImageUpload(e, false)}
                 className={styles.photoInput}
                 id="photo-upload"
@@ -1817,7 +1814,7 @@ const Home = () => {
                   <input
                     type="file"
                     multiple
-                    accept="image/*"
+                    accept="image/*,video/*"
                     onChange={(e) => handleImageUpload(e, true)}
                     className={styles.photoInput}
                     id="photo-upload-edit"
@@ -1922,21 +1919,30 @@ const Home = () => {
         </div>
       </Modal>
 
-      {/* Image Modal */}
-      <Modal
-        isOpen={showImageModal}
-        onClose={() => setShowImageModal(false)}
-      >
-        <div className={styles.imageModalContent}>
-          {selectedImage && (
-            <img 
-              src={typeof selectedImage === 'string' ? selectedImage : URL.createObjectURL(selectedImage)} 
-              alt="Full size concert image" 
-              className={styles.fullSizeImage}
-            />
-          )}
-        </div>
-      </Modal>
+                  {/* Media Modal */}
+            <Modal
+              isOpen={showImageModal}
+              onClose={() => setShowImageModal(false)}
+            >
+              <div className={styles.imageModalContent}>
+                {selectedImage && (
+                  selectedImage.type && selectedImage.type.startsWith('video/') ? (
+                    <video
+                      src={typeof selectedImage === 'string' ? selectedImage : URL.createObjectURL(selectedImage)}
+                      controls
+                      autoPlay
+                      className={styles.fullSizeImage}
+                    />
+                  ) : (
+                    <img
+                      src={typeof selectedImage === 'string' ? selectedImage : URL.createObjectURL(selectedImage)}
+                      alt="Full size concert image"
+                      className={styles.fullSizeImage}
+                    />
+                  )
+                )}
+              </div>
+            </Modal>
     </div>
   );
 };

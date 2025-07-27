@@ -891,6 +891,7 @@ const Home = () => {
   };
 
   const handleImageClick = (image, event) => {
+    event.preventDefault();
     event.stopPropagation(); // Prevent concert card click
     setSelectedImage(image);
     setShowImageModal(true);
@@ -1151,6 +1152,8 @@ const Home = () => {
                   key={index} 
                   className={styles.imageContainer}
                   onClick={(e) => handleImageClick(image, e)}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                 >
                   <img 
                     src={typeof image === 'string' ? image : URL.createObjectURL(image)} 
@@ -1305,6 +1308,8 @@ const Home = () => {
                   key={index} 
                   className={styles.imageContainer}
                   onClick={(e) => handleImageClick(image, e)}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                 >
                   <img 
                     src={typeof image === 'string' ? image : URL.createObjectURL(image)} 

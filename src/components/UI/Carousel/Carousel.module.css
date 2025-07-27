@@ -135,13 +135,13 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   gap: var(--spacing-xs);
-  height: 120px; /* Larger height for better visibility */
+  height: 80px; /* Match width for square thumbnails */
   align-items: center;
 }
 
 /* Single item - show as square thumbnail */
 .mediaGrid.singleItem {
-  grid-template-columns: 120px; /* Larger fixed width for single item */
+  grid-template-columns: 80px; /* Square width for single item */
   justify-content: start; /* Align to left */
 }
 
@@ -222,12 +222,12 @@
   .mediaGrid {
     grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
     gap: var(--spacing-xs);
-    height: 100px; /* Larger height for better visibility on mobile */
+    height: 60px; /* Match width for square thumbnails on mobile */
   }
 
   /* Single item - show as square thumbnail on mobile */
   .mediaGrid.singleItem {
-    grid-template-columns: 100px; /* Larger fixed width for single item on mobile */
+    grid-template-columns: 60px; /* Square width for single item on mobile */
     justify-content: start; /* Align to left */
   }
 

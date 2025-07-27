@@ -1001,29 +1001,29 @@
 }
 
 .concertCarousel :global(.carousel) {
-  height: 120px; /* Larger height for better visibility */
+  height: 80px; /* Square height to match width */
 }
 
 .concertCarousel :global(.videoContainer) {
-  height: 120px;
+  height: 80px;
 }
 
 .concertCarousel :global(.image) {
-  height: 120px;
+  height: 80px;
 }
 
 /* Mobile carousel adjustments */
 @media (max-width: 768px) {
   .concertCarousel :global(.carousel) {
-    height: 100px; /* Larger height for better visibility on mobile */
+    height: 60px; /* Square height to match width on mobile */
   }
 
   .concertCarousel :global(.videoContainer) {
-    height: 100px;
+    height: 60px;
   }
 
   .concertCarousel :global(.image) {
-    height: 100px;
+    height: 60px;
   }
 }
 

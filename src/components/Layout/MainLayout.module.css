@@ -255,36 +255,40 @@
 
 @media (max-width: 768px) {
   .navContent {
-    flex-direction: column;
-    gap: var(--spacing-md);
-    text-align: center;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-sm);
   }
 
   .navActions {
-    flex-direction: column;
-    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-sm);
   }
 
   .navLinks {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .navLink {
-    padding: var(--spacing-md);
+    display: none;
   }
 
   .userMenu {
-    width: 100%;
+    width: auto;
   }
 
   .userButton {
-    width: 100%;
-    justify-content: center;
+    width: auto;
+    justify-content: flex-start;
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  .userName {
+    display: none;
   }
 
   .userDropdown {
-    width: 100%;
+    width: auto;
+    min-width: 200px;
+    right: 0;
   }
 
   .footerSections {
@@ -296,5 +300,20 @@
     flex-direction: column;
     gap: var(--spacing-md);
     text-align: center;
+  }
+
+  .logo {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .logo h1 {
+    font-size: var(--font-size-h4);
+    margin: 0;
+  }
+
+  .tagline {
+    display: none;
   }
 } 

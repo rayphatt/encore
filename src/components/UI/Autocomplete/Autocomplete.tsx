@@ -99,9 +99,8 @@ const Autocomplete: React.FC<AutocompleteProps> = ({
   };
 
   const handleInputFocus = () => {
-    if (showDropdown) {
-      setIsOpen(true);
-    }
+    // Only show dropdown if user is actively typing (value changed recently)
+    // Don't auto-open dropdown just because of focus
   };
 
   return (

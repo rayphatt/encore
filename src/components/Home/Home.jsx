@@ -1492,7 +1492,6 @@ const Home = () => {
                 type="file"
                 multiple
                 accept="image/*"
-                capture="environment"
                 onChange={(e) => handleImageUpload(e, false)}
                 className={styles.photoInput}
                 id="photo-upload"
@@ -1799,7 +1798,6 @@ const Home = () => {
                     type="file"
                     multiple
                     accept="image/*"
-                    capture="environment"
                     onChange={(e) => handleImageUpload(e, true)}
                     className={styles.photoInput}
                     id="photo-upload-edit"

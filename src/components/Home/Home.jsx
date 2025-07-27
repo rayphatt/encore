@@ -915,8 +915,7 @@ const Home = () => {
   const handleEditConcert = (concert) => {
     setEditingConcert(concert);
     setEditingImages([]);
-    // Set the venue query for the venue Autocomplete component
-    setVenueQuery(concert.venue || '');
+    // Don't set venue query immediately to prevent auto-search
     setShowEditConcert(true);
     
     // Initialize editing artists state

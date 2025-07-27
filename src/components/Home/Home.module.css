@@ -329,8 +329,8 @@
 
 @media (max-width: 768px) {
   .imageGallery {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: var(--spacing-sm);
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: var(--spacing-xs);
     margin-bottom: var(--spacing-sm);
   }
 

@@ -87,6 +87,9 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
 
   if (items.length === 0) return null;
 
+  console.log('Carousel items:', items.length, items);
+  console.log('Current index:', currentIndex);
+
   const currentItem = items[currentIndex];
   if (!currentItem) {
     console.warn('Carousel: currentItem is undefined', { currentIndex, items });
@@ -99,17 +102,6 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
   return (
     <div className={`${styles.carousel} ${className || ''}`} onClick={handleCarouselClick}>
       <div className={styles.carouselContainer}>
-        {/* Previous button */}
-        {items.length > 1 && (
-          <button 
-            className={`${styles.carouselButton} ${styles.prevButton}`}
-            onClick={prevSlide}
-            aria-label="Previous"
-          >
-            ‹
-          </button>
-        )}
-
         {/* Main content */}
         <div className={styles.carouselContent}>
           {items.length === 1 ? (
@@ -192,30 +184,15 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
             </div>
           )}
         </div>
-
-        {/* Next button */}
-        {items.length > 1 && (
-          <button 
-            className={`${styles.carouselButton} ${styles.nextButton}`}
-            onClick={nextSlide}
-            aria-label="Next"
-          >
-            ›
-          </button>
-        )}
       </div>
 
-      {/* Dots indicator */}
-      {items.length > 1 && (
+      {/* Dots indicator - only for single item view */}
+      {items.length === 1 && (
         <div className={styles.dots}>
-          {items.map((_, index) => (
-            <button
-              key={index}
-              className={`${styles.dot} ${index === currentIndex ? styles.activeDot : ''}`}
-              onClick={() => setCurrentIndex(index)}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
+          <button
+            className={`${styles.dot} ${styles.activeDot}`}
+            aria-label="Current item"
+          />
         </div>
       )}
     </div>

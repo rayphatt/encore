@@ -112,41 +112,84 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
 
         {/* Main content */}
         <div className={styles.carouselContent}>
-          {isVideo ? (
-            <div className={styles.videoContainer}>
-              <video
-                ref={videoRef}
-                src={mediaUrl}
-                className={styles.video}
-                onEnded={handleVideoEnded}
-                onError={(e) => console.error('Video error:', e)}
-                onLoadStart={() => console.log('Video loading started')}
-                onCanPlay={() => console.log('Video can play')}
-                muted
-                loop
-                preload="metadata"
-                playsInline
-                webkit-playsinline="true"
+          {items.length === 1 ? (
+            // Single item - show full size
+            isVideo ? (
+              <div className={styles.videoContainer}>
+                <video
+                  ref={videoRef}
+                  src={mediaUrl}
+                  className={styles.video}
+                  onEnded={handleVideoEnded}
+                  onError={(e) => console.error('Video error:', e)}
+                  onLoadStart={() => console.log('Video loading started')}
+                  onCanPlay={() => console.log('Video can play')}
+                  muted
+                  loop
+                  preload="metadata"
+                  playsInline
+                  webkit-playsinline="true"
+                />
+                <button 
+                  className={`${styles.playButton} ${isPlaying ? styles.playing : ''}`}
+                  onClick={handleVideoPlay}
+                  aria-label={isPlaying ? 'Pause' : 'Play'}
+                >
+                  {isPlaying ? '⏸' : '▶'}
+                </button>
+              </div>
+            ) : (
+              <img 
+                src={mediaUrl} 
+                alt="Carousel item" 
+                className={styles.image}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleItemClick(currentItem, currentIndex);
+                }}
               />
-              <button 
-                className={`${styles.playButton} ${isPlaying ? styles.playing : ''}`}
-                onClick={handleVideoPlay}
-                aria-label={isPlaying ? 'Pause' : 'Play'}
-              >
-                {isPlaying ? '⏸' : '▶'}
-              </button>
-            </div>
+            )
           ) : (
-            <img 
-              src={mediaUrl} 
-              alt="Carousel item" 
-              className={styles.image}
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                handleItemClick(currentItem, currentIndex);
-              }}
-            />
+            // Multiple items - show grid
+            <div className={styles.mediaGrid}>
+              {items.map((item, index) => {
+                const itemUrl = item.file ? URL.createObjectURL(item.file) : item.url;
+                const isItemVideo = item.type === 'video';
+                
+                return (
+                  <div 
+                    key={index} 
+                    className={styles.gridItem}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setCurrentIndex(index);
+                      handleItemClick(item, index);
+                    }}
+                  >
+                    {isItemVideo ? (
+                      <div className={styles.gridVideoContainer}>
+                        <video
+                          src={itemUrl}
+                          className={styles.gridVideo}
+                          muted
+                          preload="metadata"
+                          playsInline
+                        />
+                        <div className={styles.gridPlayButton}>▶</div>
+                      </div>
+                    ) : (
+                      <img 
+                        src={itemUrl} 
+                        alt={`Media ${index + 1}`} 
+                        className={styles.gridImage}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
 

@@ -1001,29 +1001,29 @@
 }
 
 .concertCarousel :global(.carousel) {
-  height: 200px;
+  height: 120px;
 }
 
 .concertCarousel :global(.videoContainer) {
-  height: 200px;
+  height: 120px;
 }
 
 .concertCarousel :global(.image) {
-  height: 200px;
+  height: 120px;
 }
 
 /* Mobile carousel adjustments */
 @media (max-width: 768px) {
   .concertCarousel :global(.carousel) {
-    height: 150px;
+    height: 100px;
   }
 
   .concertCarousel :global(.videoContainer) {
-    height: 150px;
+    height: 100px;
   }
 
   .concertCarousel :global(.image) {
-    height: 150px;
+    height: 100px;
   }
 }
 

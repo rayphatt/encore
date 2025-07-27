@@ -135,7 +135,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   gap: var(--spacing-xs);
-  height: 100%;
+  height: 80px; /* Fixed height for compact display */
   align-items: center;
 }
 
@@ -216,6 +216,7 @@
   .mediaGrid {
     grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
     gap: var(--spacing-xs);
+    height: 60px; /* Even more compact on mobile */
   }
 
   .gridPlayButton {

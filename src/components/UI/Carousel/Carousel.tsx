@@ -36,6 +36,11 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
     }
   };
 
+  const handleCarouselClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
   const handleVideoPlay = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -92,7 +97,7 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
   const mediaUrl = currentItem.file ? URL.createObjectURL(currentItem.file) : currentItem.url;
 
   return (
-    <div className={`${styles.carousel} ${className || ''}`}>
+    <div className={`${styles.carousel} ${className || ''}`} onClick={handleCarouselClick}>
       <div className={styles.carouselContainer}>
         {/* Previous button */}
         {items.length > 1 && (
@@ -136,7 +141,11 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
               src={mediaUrl} 
               alt="Carousel item" 
               className={styles.image}
-              onClick={() => handleItemClick(currentItem, currentIndex)}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                handleItemClick(currentItem, currentIndex);
+              }}
             />
           )}
         </div>

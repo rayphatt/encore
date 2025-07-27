@@ -932,11 +932,18 @@ const Home = () => {
     return files.map(file => {
       // Handle both File objects and string URLs
       if (typeof file === 'string') {
-        // It's a URL string (existing image)
-        return {
-          url: file,
-          type: 'image'
-        };
+        // It's a URL string (existing image or video)
+        if (file.startsWith('data:video/')) {
+          return {
+            url: file,
+            type: 'video'
+          };
+        } else {
+          return {
+            url: file,
+            type: 'image'
+          };
+        }
       } else if (file instanceof File) {
         // It's a File object (new upload)
         return {
@@ -1980,7 +1987,8 @@ const Home = () => {
             >
               <div className={styles.imageModalContent}>
                 {selectedImage && (
-                  selectedImage.type && selectedImage.type.startsWith('video/') ? (
+                  (selectedImage.type && selectedImage.type.startsWith('video/')) || 
+                  (typeof selectedImage === 'string' && selectedImage.startsWith('data:video/')) ? (
                     <video
                       src={typeof selectedImage === 'string' ? selectedImage : URL.createObjectURL(selectedImage)}
                       controls

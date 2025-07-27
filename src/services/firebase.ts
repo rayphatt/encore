@@ -295,60 +295,70 @@ export const firebaseConcertService = {
     await deleteDoc(doc(db, 'concerts', concertId));
   },
 
-  // Upload images to Firebase Storage
+  // Upload images and videos to Firebase Storage
   async uploadImages(userId: string, images: File[]): Promise<string[]> {
-    console.log('=== UPLOAD IMAGES DEBUG ===');
+    console.log('=== UPLOAD MEDIA DEBUG ===');
     console.log('userId:', userId);
-    console.log('images:', images);
+    console.log('media files:', images);
     
     // TEMPORARY: Bypass Firebase Storage for development
     const BYPASS_FIREBASE_STORAGE = true;
     
     if (BYPASS_FIREBASE_STORAGE) {
-      console.log('Bypassing Firebase Storage - using compressed data URLs for development');
-      const dataUrlPromises = images.map(async (image, index) => {
+      console.log('Bypassing Firebase Storage - using data URLs for development');
+      const dataUrlPromises = images.map(async (file, index) => {
         return new Promise<string>((resolve) => {
-          // Compress the image before creating data URL
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          const img = new Image();
-          
-          img.onload = () => {
-            // Calculate new dimensions (max 800px width/height)
-            const maxSize = 800;
-            let { width, height } = img;
+          if (file.type.startsWith('video/')) {
+            // Handle video files
+            const reader = new FileReader();
+            reader.onload = () => {
+              console.log(`Created data URL for video ${index} (${reader.result?.toString().length} bytes)`);
+              resolve(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+          } else {
+            // Handle image files with compression
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
             
-            if (width > height) {
-              if (width > maxSize) {
-                height = (height * maxSize) / width;
-                width = maxSize;
+            img.onload = () => {
+              // Calculate new dimensions (max 800px width/height)
+              const maxSize = 800;
+              let { width, height } = img;
+              
+              if (width > height) {
+                if (width > maxSize) {
+                  height = (height * maxSize) / width;
+                  width = maxSize;
+                }
+              } else {
+                if (height > maxSize) {
+                  width = (width * maxSize) / height;
+                  height = maxSize;
+                }
               }
-            } else {
-              if (height > maxSize) {
-                width = (width * maxSize) / height;
-                height = maxSize;
-              }
-            }
+              
+              // Set canvas dimensions
+              canvas.width = width;
+              canvas.height = height;
+              
+              // Draw and compress image
+              ctx?.drawImage(img, 0, 0, width, height);
+              
+              // Convert to compressed data URL (quality 0.7)
+              const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+              console.log(`Created compressed data URL for image ${index} (${compressedDataUrl.length} bytes)`);
+              resolve(compressedDataUrl);
+            };
             
-            // Set canvas dimensions
-            canvas.width = width;
-            canvas.height = height;
-            
-            // Draw and compress image
-            ctx?.drawImage(img, 0, 0, width, height);
-            
-            // Convert to compressed data URL (quality 0.7)
-            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-            console.log(`Created compressed data URL for image ${index} (${compressedDataUrl.length} bytes)`);
-            resolve(compressedDataUrl);
-          };
-          
-          img.src = URL.createObjectURL(image);
+            img.src = URL.createObjectURL(file);
+          }
         });
       });
       
       const dataUrls = await Promise.all(dataUrlPromises);
-      console.log('=== END UPLOAD IMAGES DEBUG (BYPASSED) ===');
+      console.log('=== END UPLOAD MEDIA DEBUG (BYPASSED) ===');
       return dataUrls;
     }
     

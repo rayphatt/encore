@@ -96,6 +96,8 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
     return null;
   }
 
+  // Note: We're always using grid layout now, so these variables aren't needed
+  // but keeping them for potential future use
   const isVideo = currentItem.type === 'video';
   const mediaUrl = currentItem.file ? URL.createObjectURL(currentItem.file) : currentItem.url;
 
@@ -104,97 +106,49 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
       <div className={styles.carouselContainer}>
         {/* Main content */}
         <div className={styles.carouselContent}>
-          {items.length === 1 ? (
-            // Single item - show full size
-            isVideo ? (
-              <div className={styles.videoContainer}>
-                <video
-                  ref={videoRef}
-                  src={mediaUrl}
-                  className={styles.video}
-                  onEnded={handleVideoEnded}
-                  onError={(e) => console.error('Video error:', e)}
-                  onLoadStart={() => console.log('Video loading started')}
-                  onCanPlay={() => console.log('Video can play')}
-                  muted
-                  loop
-                  preload="metadata"
-                  playsInline
-                  webkit-playsinline="true"
-                />
-                <button 
-                  className={`${styles.playButton} ${isPlaying ? styles.playing : ''}`}
-                  onClick={handleVideoPlay}
-                  aria-label={isPlaying ? 'Pause' : 'Play'}
+          {/* Always show grid layout for consistent sizing */}
+          <div className={styles.mediaGrid}>
+            {items.map((item, index) => {
+              const itemUrl = item.file ? URL.createObjectURL(item.file) : item.url;
+              const isItemVideo = item.type === 'video';
+              
+              return (
+                <div 
+                  key={index} 
+                  className={styles.gridItem}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setCurrentIndex(index);
+                    handleItemClick(item, index);
+                  }}
                 >
-                  {isPlaying ? '⏸' : '▶'}
-                </button>
-              </div>
-            ) : (
-              <img 
-                src={mediaUrl} 
-                alt="Carousel item" 
-                className={styles.image}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  handleItemClick(currentItem, currentIndex);
-                }}
-              />
-            )
-          ) : (
-            // Multiple items - show grid
-            <div className={styles.mediaGrid}>
-              {items.map((item, index) => {
-                const itemUrl = item.file ? URL.createObjectURL(item.file) : item.url;
-                const isItemVideo = item.type === 'video';
-                
-                return (
-                  <div 
-                    key={index} 
-                    className={styles.gridItem}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      setCurrentIndex(index);
-                      handleItemClick(item, index);
-                    }}
-                  >
-                    {isItemVideo ? (
-                      <div className={styles.gridVideoContainer}>
-                        <video
-                          src={itemUrl}
-                          className={styles.gridVideo}
-                          muted
-                          preload="metadata"
-                          playsInline
-                        />
-                        <div className={styles.gridPlayButton}>▶</div>
-                      </div>
-                    ) : (
-                      <img 
-                        src={itemUrl} 
-                        alt={`Media ${index + 1}`} 
-                        className={styles.gridImage}
+                  {isItemVideo ? (
+                    <div className={styles.gridVideoContainer}>
+                      <video
+                        src={itemUrl}
+                        className={styles.gridVideo}
+                        muted
+                        preload="metadata"
+                        playsInline
                       />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                      <div className={styles.gridPlayButton}>▶</div>
+                    </div>
+                  ) : (
+                    <img 
+                      src={itemUrl} 
+                      alt={`Media ${index + 1}`} 
+                      className={styles.gridImage}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Dots indicator - only for single item view */}
-      {items.length === 1 && (
-        <div className={styles.dots}>
-          <button
-            className={`${styles.dot} ${styles.activeDot}`}
-            aria-label="Current item"
-          />
-        </div>
-      )}
+      {/* No dots indicator needed for grid layout */}
     </div>
   );
 };

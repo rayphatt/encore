@@ -47,6 +47,8 @@ const Home = () => {
   const [openerToRate, setOpenerToRate] = useState(null);
   const [viewMode, setViewMode] = useState('personal');
   const [selectedYear, setSelectedYear] = useState('all');
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(false);
   const [newConcertData, setNewConcertData] = useState({
     artist: '',
     venue: '',
@@ -888,6 +890,12 @@ const Home = () => {
     setSelectedConcert(concert);
   };
 
+  const handleImageClick = (image, event) => {
+    event.stopPropagation(); // Prevent concert card click
+    setSelectedImage(image);
+    setShowImageModal(true);
+  };
+
   // Quick venue edit function
   const handleQuickVenueEdit = async (concert) => {
     const newVenue = prompt('Enter the correct venue name:', concert.venue);
@@ -1139,7 +1147,11 @@ const Home = () => {
           {concert.images && concert.images.length > 0 && (
             <div className={styles.imageGallery}>
               {concert.images.map((image, index) => (
-                <div key={index} className={styles.imageContainer}>
+                <div 
+                  key={index} 
+                  className={styles.imageContainer}
+                  onClick={(e) => handleImageClick(image, e)}
+                >
                   <img 
                     src={typeof image === 'string' ? image : URL.createObjectURL(image)} 
                     alt={`Concert ${index + 1}`} 
@@ -1287,16 +1299,20 @@ const Home = () => {
               </div>
 
               {concert.images && concert.images.length > 0 && (
-                <div className={styles.imageGallery}>
-                  {concert.images.map((image, index) => (
-                    <div key={index} className={styles.imageContainer}>
-                      <img 
-                        src={typeof image === 'string' ? image : URL.createObjectURL(image)} 
-                        alt={`Concert ${index + 1}`} 
-                      />
-                    </div>
-                  ))}
+                            <div className={styles.imageGallery}>
+              {concert.images.map((image, index) => (
+                <div 
+                  key={index} 
+                  className={styles.imageContainer}
+                  onClick={(e) => handleImageClick(image, e)}
+                >
+                  <img 
+                    src={typeof image === 'string' ? image : URL.createObjectURL(image)} 
+                    alt={`Concert ${index + 1}`} 
+                  />
                 </div>
+              ))}
+            </div>
               )}
 
               {concert.notes && (
@@ -1898,6 +1914,22 @@ const Home = () => {
               Maybe Later
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Image Modal */}
+      <Modal
+        isOpen={showImageModal}
+        onClose={() => setShowImageModal(false)}
+      >
+        <div className={styles.imageModalContent}>
+          {selectedImage && (
+            <img 
+              src={typeof selectedImage === 'string' ? selectedImage : URL.createObjectURL(selectedImage)} 
+              alt="Full size concert image" 
+              className={styles.fullSizeImage}
+            />
+          )}
         </div>
       </Modal>
     </div>

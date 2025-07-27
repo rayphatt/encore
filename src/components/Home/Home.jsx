@@ -698,17 +698,32 @@ const Home = () => {
   };
 
   const handleImageUpload = (event, isEditing = false) => {
+    console.log('File upload triggered:', event.target.files);
     
     const files = Array.from(event.target.files);
+    console.log('Files selected:', files);
+    
     const mediaFiles = files.filter(file => 
       file.type.startsWith('image/') || file.type.startsWith('video/')
     );
+    console.log('Media files filtered:', mediaFiles);
     
     if (isEditing) {
-      setEditingImages(prev => [...prev, ...mediaFiles]);
+      setEditingImages(prev => {
+        const newImages = [...prev, ...mediaFiles];
+        console.log('Updated editing images:', newImages);
+        return newImages;
+      });
     } else {
-      setSelectedImages(prev => [...prev, ...mediaFiles]);
+      setSelectedImages(prev => {
+        const newImages = [...prev, ...mediaFiles];
+        console.log('Updated selected images:', newImages);
+        return newImages;
+      });
     }
+    
+    // Reset the file input so the same file can be selected again
+    event.target.value = '';
   };
 
   const handleArtistSelect = (artist, index = 0) => {
@@ -1965,12 +1980,16 @@ const Home = () => {
                       controls
                       autoPlay
                       className={styles.fullSizeImage}
+                      onError={(e) => console.error('Modal video error:', e)}
+                      playsInline
+                      webkit-playsinline="true"
                     />
                   ) : (
                     <img
                       src={typeof selectedImage === 'string' ? selectedImage : URL.createObjectURL(selectedImage)}
                       alt="Full size concert image"
                       className={styles.fullSizeImage}
+                      onError={(e) => console.error('Modal image error:', e)}
                     />
                   )
                 )}

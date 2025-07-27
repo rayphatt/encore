@@ -38,13 +38,35 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
 
   const handleVideoPlay = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
+    
     if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
+      try {
+        if (isPlaying) {
+          videoRef.current.pause();
+          setIsPlaying(false);
+        } else {
+          // Ensure video is loaded before playing
+          if (videoRef.current.readyState >= 2) {
+            videoRef.current.play().catch(error => {
+              console.error('Video play error:', error);
+              setIsPlaying(false);
+            });
+            setIsPlaying(true);
+          } else {
+            // Wait for video to load
+            videoRef.current.addEventListener('canplay', () => {
+              videoRef.current?.play().catch(error => {
+                console.error('Video play error:', error);
+                setIsPlaying(false);
+              });
+              setIsPlaying(true);
+            }, { once: true });
+          }
+        }
+      } catch (error) {
+        console.error('Video play error:', error);
         setIsPlaying(false);
-      } else {
-        videoRef.current.play();
-        setIsPlaying(true);
       }
     }
   };
@@ -93,9 +115,13 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                 className={styles.video}
                 onEnded={handleVideoEnded}
                 onError={(e) => console.error('Video error:', e)}
+                onLoadStart={() => console.log('Video loading started')}
+                onCanPlay={() => console.log('Video can play')}
                 muted
                 loop
                 preload="metadata"
+                playsInline
+                webkit-playsinline="true"
               />
               <button 
                 className={`${styles.playButton} ${isPlaying ? styles.playing : ''}`}

@@ -92,8 +92,6 @@ const MainLayout = ({ children }) => {
             <div className={styles.footerSection}>
               <h4>About</h4>
               <Link to="/about">About Us</Link>
-              <Link to="/blog">Blog</Link>
-              <Link to="/careers">Careers</Link>
             </div>
             <div className={styles.footerSection}>
               <h4>Support</h4>

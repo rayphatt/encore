@@ -6,6 +6,10 @@ import Home from './components/Home/Home';
 import Login from './components/Auth/Login';
 import SignUp from './components/Auth/SignUp';
 import Profile from './components/Profile/Profile';
+// Legal pages
+import PrivacyPolicy from './components/Legal/PrivacyPolicy';
+import TermsOfService from './components/Legal/TermsOfService';
+import CookiePolicy from './components/Legal/CookiePolicy';
 
 // Simple landing page component
 const Landing = () => (
@@ -64,6 +68,10 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/profile" element={<Profile />} />
+        {/* Legal pages */}
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/cookies" element={<CookiePolicy />} />
       </Routes>
     </MainLayout>
   );

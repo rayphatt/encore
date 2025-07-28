@@ -152,6 +152,8 @@
   cursor: pointer;
   transition: transform 0.2s ease;
   position: relative;
+  width: 80px; /* Force square width */
+  height: 80px; /* Force square height */
 }
 
 .gridItem:hover {
@@ -229,6 +231,11 @@
   .mediaGrid.singleItem {
     grid-template-columns: 60px; /* Square width for single item on mobile */
     justify-content: start; /* Align to left */
+  }
+
+  .gridItem {
+    width: 60px; /* Force square width on mobile */
+    height: 60px; /* Force square height on mobile */
   }
 
   .gridPlayButton {

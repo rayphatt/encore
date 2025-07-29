@@ -164,8 +164,7 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                       width: '100%',
                       height: '100%',
                       borderRadius: '8px',
-                      overflow: 'hidden',
-                      backgroundColor: 'rgba(0, 0, 255, 0.1)'
+                      overflow: 'hidden'
                     }}>
                       <img 
                         src={itemUrl} 

@@ -160,19 +160,25 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                       <div className={styles.gridPlayButton}>▶</div>
                     </div>
                   ) : (
-                    <img 
-                      src={itemUrl} 
-                      alt={`Media ${index + 1}`} 
-                      className={styles.gridImage}
-                      style={{
-                        borderRadius: '8px',
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        display: 'block',
-                        backgroundColor: 'rgba(0, 0, 255, 0.1)' // Temporary debug color
-                      }}
-                    />
+                    <div style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      backgroundColor: 'rgba(0, 0, 255, 0.1)'
+                    }}>
+                      <img 
+                        src={itemUrl} 
+                        alt={`Media ${index + 1}`} 
+                        className={styles.gridImage}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block'
+                        }}
+                      />
+                    </div>
                   )}
                 </div>
               );

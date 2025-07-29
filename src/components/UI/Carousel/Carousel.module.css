@@ -193,6 +193,7 @@
 .carousel .gridItem img {
   border-radius: var(--border-radius) !important;
   overflow: hidden !important;
+  clip-path: inset(0 0 0 0 round var(--border-radius)) !important;
 }
 
 /* Additional specificity for single item images */
@@ -202,6 +203,7 @@
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
+  clip-path: inset(0 0 0 0 round var(--border-radius)) !important;
 }
 
 .gridVideoContainer {

@@ -15,8 +15,8 @@ interface CarouselProps {
 
 const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [playingVideos, setPlayingVideos] = useState<{ [key: number]: boolean }>({});
+  const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({});
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) => 
@@ -41,48 +41,53 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
     e.preventDefault();
   };
 
-  const handleVideoPlay = (e: React.MouseEvent) => {
+  const handleVideoPlay = (e: React.MouseEvent, index: number) => {
     e.stopPropagation();
     e.preventDefault();
     
-    if (videoRef.current) {
+    const videoRef = videoRefs.current[index];
+    if (videoRef) {
       try {
-        if (isPlaying) {
-          videoRef.current.pause();
-          setIsPlaying(false);
+        if (playingVideos[index]) {
+          videoRef.pause();
+          setPlayingVideos(prev => ({ ...prev, [index]: false }));
         } else {
           // Ensure video is loaded before playing
-          if (videoRef.current.readyState >= 2) {
-            videoRef.current.play().catch(error => {
+          if (videoRef.readyState >= 2) {
+            videoRef.play().catch(error => {
               console.error('Video play error:', error);
-              setIsPlaying(false);
+              setPlayingVideos(prev => ({ ...prev, [index]: false }));
             });
-            setIsPlaying(true);
+            setPlayingVideos(prev => ({ ...prev, [index]: true }));
           } else {
             // Wait for video to load
-            videoRef.current.addEventListener('canplay', () => {
-              videoRef.current?.play().catch(error => {
+            videoRef.addEventListener('canplay', () => {
+              videoRef.play().catch(error => {
                 console.error('Video play error:', error);
-                setIsPlaying(false);
+                setPlayingVideos(prev => ({ ...prev, [index]: false }));
               });
-              setIsPlaying(true);
+              setPlayingVideos(prev => ({ ...prev, [index]: true }));
             }, { once: true });
           }
         }
       } catch (error) {
         console.error('Video play error:', error);
-        setIsPlaying(false);
+        setPlayingVideos(prev => ({ ...prev, [index]: false }));
       }
     }
   };
 
-  const handleVideoEnded = () => {
-    setIsPlaying(false);
+  const handleVideoEnded = (index: number) => {
+    setPlayingVideos(prev => ({ ...prev, [index]: false }));
+  };
+
+  const handleVideoPause = (index: number) => {
+    setPlayingVideos(prev => ({ ...prev, [index]: false }));
   };
 
   // Reset video state when current item changes
   useEffect(() => {
-    setIsPlaying(false);
+    setPlayingVideos({});
   }, [currentIndex]);
 
   if (items.length === 0) return null;
@@ -122,6 +127,7 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
             {items.map((item, index) => {
               const itemUrl = item.file ? URL.createObjectURL(item.file) : item.url;
               const isItemVideo = item.type === 'video';
+              const isVideoPlaying = playingVideos[index];
               
               return (
                 <div 
@@ -153,11 +159,16 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                   {isItemVideo ? (
                     <div className={styles.gridVideoContainer}>
                       <video
+                        ref={(el) => {
+                          videoRefs.current[index] = el;
+                        }}
                         src={itemUrl}
                         className={styles.gridVideo}
                         muted
                         preload="metadata"
                         playsInline
+                        onEnded={() => handleVideoEnded(index)}
+                        onPause={() => handleVideoPause(index)}
                         style={{
                           borderRadius: '8px',
                           width: '100%',
@@ -165,7 +176,12 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                           objectFit: 'cover'
                         }}
                       />
-                      <div className={styles.gridPlayButton}>▶</div>
+                      <button
+                        className={`${styles.gridPlayButton} ${isVideoPlaying ? styles.playing : ''}`}
+                        onClick={(e) => handleVideoPlay(e, index)}
+                      >
+                        {isVideoPlaying ? '⏸' : '▶'}
+                      </button>
                     </div>
                   ) : (
                     <div style={{

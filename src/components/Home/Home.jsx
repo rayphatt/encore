@@ -929,23 +929,47 @@ const Home = () => {
   const convertFilesToMediaItems = (files) => {
     if (!files || files.length === 0) return [];
     
-    return files.map(file => {
+    console.log('Converting files to media items:', files);
+    
+    return files.map((file, index) => {
       // Handle both File objects and string URLs
       if (typeof file === 'string') {
         // It's a URL string (existing image or video)
+        console.log(`File ${index} is string:`, file.substring(0, 100) + '...');
         if (file.startsWith('data:video/')) {
+          console.log(`File ${index} detected as video`);
           return {
             url: file,
             type: 'video'
           };
-        } else {
+        } else if (file.startsWith('data:image/')) {
+          console.log(`File ${index} detected as image`);
           return {
             url: file,
             type: 'image'
           };
+        } else {
+          // For other URL types, try to detect by file extension or content
+          console.log(`File ${index} unknown data type, checking extension...`);
+          const lowerFile = file.toLowerCase();
+          if (lowerFile.includes('.mp4') || lowerFile.includes('.mov') || lowerFile.includes('.avi') || 
+              lowerFile.includes('.webm') || lowerFile.includes('.mkv') || lowerFile.includes('video')) {
+            console.log(`File ${index} detected as video by extension/content`);
+            return {
+              url: file,
+              type: 'video'
+            };
+          } else {
+            console.log(`File ${index} detected as image by default`);
+            return {
+              url: file,
+              type: 'image'
+            };
+          }
         }
       } else if (file instanceof File) {
         // It's a File object (new upload)
+        console.log(`File ${index} is File object:`, file.type);
         return {
           file,
           type: file.type.startsWith('video/') ? 'video' : 'image'

@@ -96,6 +96,15 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
   console.log('Current index:', currentIndex);
   console.log('Is single item:', items.length === 1);
   console.log('Single item class:', items.length === 1 ? styles.singleItem : '');
+  
+  // Debug video detection
+  items.forEach((item, index) => {
+    if (item.type === 'video') {
+      console.log(`Item ${index} is video:`, item);
+    } else {
+      console.log(`Item ${index} is image:`, item);
+    }
+  });
 
   const currentItem = items[currentIndex];
   if (!currentItem) {

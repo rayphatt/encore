@@ -132,8 +132,12 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                   style={items.length <= 5 ? {
                     width: '150px',
                     height: '150px',
-                    borderRadius: '8px'
-                  } : {}}
+                    borderRadius: '8px',
+                    overflow: 'hidden'
+                  } : {
+                    borderRadius: '8px',
+                    overflow: 'hidden'
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
@@ -149,6 +153,12 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                         muted
                         preload="metadata"
                         playsInline
+                        style={{
+                          borderRadius: '8px',
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
                       />
                       <div className={styles.gridPlayButton}>▶</div>
                     </div>
@@ -157,6 +167,12 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                       src={itemUrl} 
                       alt={`Media ${index + 1}`} 
                       className={styles.gridImage}
+                      style={{
+                        borderRadius: '8px',
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
                     />
                   )}
                 </div>

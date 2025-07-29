@@ -171,11 +171,18 @@
   transform: scale(1.05);
   border-radius: var(--border-radius) !important;
   overflow: hidden !important;
+  z-index: 10; /* Ensure hovered item appears above others */
 }
 
 /* Ensure hover maintains rounded corners */
 .gridItem:hover img,
 .gridItem:hover video {
+  border-radius: var(--border-radius) !important;
+  overflow: hidden !important;
+}
+
+/* Ensure wrapper div maintains rounded corners during hover */
+.gridItem:hover > div {
   border-radius: var(--border-radius) !important;
   overflow: hidden !important;
 }

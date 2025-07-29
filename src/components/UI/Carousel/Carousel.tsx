@@ -89,6 +89,8 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
 
   console.log('Carousel items:', items.length, items);
   console.log('Current index:', currentIndex);
+  console.log('Is single item:', items.length === 1);
+  console.log('Single item class:', items.length === 1 ? styles.singleItem : '');
 
   const currentItem = items[currentIndex];
   if (!currentItem) {
@@ -108,8 +110,8 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
         <div className={styles.carouselContent}>
           {/* Always show grid layout for consistent sizing */}
           <div 
-            className={`${styles.mediaGrid} ${items.length === 1 ? styles.singleItem : ''}`}
-            style={items.length === 1 ? {
+            className={`${styles.mediaGrid} ${items.length <= 5 ? styles.singleItem : ''}`}
+            style={items.length <= 5 ? {
               backgroundColor: 'rgba(0, 255, 0, 0.5)',
               border: '3px solid green',
               gridTemplateColumns: 'repeat(auto-fill, 150px)',
@@ -127,7 +129,7 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                 <div 
                   key={index} 
                   className={styles.gridItem}
-                  style={items.length === 1 ? {
+                  style={items.length <= 5 ? {
                     width: '150px',
                     height: '150px',
                     borderRadius: '8px'

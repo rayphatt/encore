@@ -107,7 +107,16 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
         {/* Main content */}
         <div className={styles.carouselContent}>
           {/* Always show grid layout for consistent sizing */}
-          <div className={`${styles.mediaGrid} ${items.length === 1 ? styles.singleItem : ''}`}>
+          <div 
+            className={`${styles.mediaGrid} ${items.length === 1 ? styles.singleItem : ''}`}
+            style={items.length === 1 ? {
+              backgroundColor: 'rgba(0, 255, 0, 0.5)',
+              border: '3px solid green',
+              gridTemplateColumns: '120px',
+              justifyContent: 'start',
+              height: '120px'
+            } : {}}
+          >
             {items.map((item, index) => {
               const itemUrl = item.file ? URL.createObjectURL(item.file) : item.url;
               const isItemVideo = item.type === 'video';
@@ -116,6 +125,10 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                 <div 
                   key={index} 
                   className={styles.gridItem}
+                  style={items.length === 1 ? {
+                    width: '120px',
+                    height: '120px'
+                  } : {}}
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();

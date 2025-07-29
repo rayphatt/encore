@@ -139,10 +139,13 @@
   align-items: center;
 }
 
-/* Single item - show as square thumbnail */
+/* Single item - show as larger left-aligned thumbnail */
 .mediaGrid.singleItem {
-  grid-template-columns: 80px; /* Square width for single item */
+  grid-template-columns: 120px; /* Larger width for single item */
   justify-content: start; /* Align to left */
+  height: 120px; /* Larger height for single item */
+  background-color: rgba(0, 255, 0, 0.5) !important; /* More visible debug color */
+  border: 3px solid green !important; /* Very visible border */
 }
 
 .gridItem {
@@ -154,6 +157,12 @@
   position: relative;
   width: 80px; /* Force square width */
   height: 80px; /* Force square height */
+}
+
+/* Single item styling - larger thumbnail */
+.mediaGrid.singleItem .gridItem {
+  width: 120px; /* Larger width for single item */
+  height: 120px; /* Larger height for single item */
 }
 
 .gridItem:hover {
@@ -227,15 +236,22 @@
     height: 60px; /* Match width for square thumbnails on mobile */
   }
 
-  /* Single item - show as square thumbnail on mobile */
+  /* Single item - show as larger thumbnail on mobile */
   .mediaGrid.singleItem {
-    grid-template-columns: 60px; /* Square width for single item on mobile */
+    grid-template-columns: 100px; /* Larger width for single item on mobile */
     justify-content: start; /* Align to left */
+    height: 100px; /* Larger height for single item on mobile */
   }
 
   .gridItem {
     width: 60px; /* Force square width on mobile */
     height: 60px; /* Force square height on mobile */
+  }
+
+  /* Single item styling - larger thumbnail on mobile */
+  .mediaGrid.singleItem .gridItem {
+    width: 100px; /* Larger width for single item on mobile */
+    height: 100px; /* Larger height for single item on mobile */
   }
 
   .gridPlayButton {

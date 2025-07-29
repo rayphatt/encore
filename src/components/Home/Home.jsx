@@ -1221,6 +1221,11 @@ const Home = () => {
                   }
                 }}
                 className={styles.concertCarousel}
+                style={{
+                  backgroundColor: 'rgba(255, 0, 0, 0.3)',
+                  border: '3px solid red',
+                  height: '120px'
+                }}
               />
             </div>
           )}

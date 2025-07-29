@@ -998,32 +998,34 @@
   margin-bottom: var(--spacing-sm);
   border-radius: var(--card-border-radius);
   overflow: hidden;
+  background-color: rgba(255, 0, 0, 0.3) !important; /* More visible debug color */
+  border: 3px solid red !important; /* Very visible border */
 }
 
 .concertCarousel :global(.carousel) {
-  height: 80px; /* Square height to match width */
+  height: 120px; /* Increased height for larger thumbnails */
 }
 
 .concertCarousel :global(.videoContainer) {
-  height: 80px;
+  height: 120px;
 }
 
 .concertCarousel :global(.image) {
-  height: 80px;
+  height: 120px;
 }
 
 /* Mobile carousel adjustments */
 @media (max-width: 768px) {
   .concertCarousel :global(.carousel) {
-    height: 60px; /* Square height to match width on mobile */
+    height: 100px; /* Larger height for mobile thumbnails */
   }
 
   .concertCarousel :global(.videoContainer) {
-    height: 60px;
+    height: 100px;
   }
 
   .concertCarousel :global(.image) {
-    height: 60px;
+    height: 100px;
   }
 }
 

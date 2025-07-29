@@ -130,12 +130,18 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                   style={{
                     borderRadius: '8px',
                     overflow: 'hidden',
-                    transition: 'transform 0.2s ease',
+                    transition: 'all 0.2s ease',
                     position: 'relative',
                     ...(items.length <= 5 ? {
                       width: '150px',
                       height: '150px'
                     } : {})
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.overflow = 'visible';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.overflow = 'hidden';
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -167,8 +173,14 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                       height: '100%',
                       borderRadius: '8px',
                       overflow: 'hidden',
-                      transition: 'transform 0.2s ease',
+                      transition: 'all 0.2s ease',
                       position: 'relative'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.overflow = 'visible';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.overflow = 'hidden';
                     }}>
                       <img 
                         src={itemUrl} 
@@ -180,7 +192,7 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                           objectFit: 'cover',
                           display: 'block',
                           borderRadius: '8px',
-                          transition: 'transform 0.2s ease'
+                          transition: 'all 0.2s ease'
                         }}
                       />
                     </div>

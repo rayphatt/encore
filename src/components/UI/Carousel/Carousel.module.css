@@ -169,6 +169,15 @@
 
 .gridItem:hover {
   transform: scale(1.05);
+  border-radius: var(--border-radius) !important;
+  overflow: hidden !important;
+}
+
+/* Ensure hover maintains rounded corners */
+.gridItem:hover img,
+.gridItem:hover video {
+  border-radius: var(--border-radius) !important;
+  overflow: hidden !important;
 }
 
 .gridImage {

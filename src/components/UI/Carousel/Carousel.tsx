@@ -130,6 +130,7 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                   style={{
                     borderRadius: '8px',
                     overflow: 'hidden',
+                    transition: 'transform 0.2s ease',
                     ...(items.length <= 5 ? {
                       width: '150px',
                       height: '150px'
@@ -164,7 +165,8 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                       width: '100%',
                       height: '100%',
                       borderRadius: '8px',
-                      overflow: 'hidden'
+                      overflow: 'hidden',
+                      transition: 'transform 0.2s ease'
                     }}>
                       <img 
                         src={itemUrl} 
@@ -174,7 +176,8 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                           width: '100%',
                           height: '100%',
                           objectFit: 'cover',
-                          display: 'block'
+                          display: 'block',
+                          borderRadius: '8px'
                         }}
                       />
                     </div>

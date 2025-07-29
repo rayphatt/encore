@@ -168,7 +168,9 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                         borderRadius: '8px',
                         width: '100%',
                         height: '100%',
-                        objectFit: 'cover'
+                        objectFit: 'cover',
+                        display: 'block',
+                        backgroundColor: 'rgba(0, 0, 255, 0.1)' // Temporary debug color
                       }}
                     />
                   )}

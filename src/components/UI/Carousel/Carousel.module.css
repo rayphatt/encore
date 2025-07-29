@@ -176,6 +176,32 @@
   height: 100% !important;
   object-fit: cover;
   border-radius: var(--border-radius) !important; /* Add rounded corners to images */
+  display: block !important;
+}
+
+/* Additional specificity for images */
+.mediaGrid .gridItem img,
+.mediaGrid.singleItem .gridItem img,
+.gridImage {
+  border-radius: var(--border-radius) !important;
+  overflow: hidden !important;
+}
+
+/* Force rounded corners on all images in carousel */
+.carousel img,
+.carousel .gridImage,
+.carousel .gridItem img {
+  border-radius: var(--border-radius) !important;
+  overflow: hidden !important;
+}
+
+/* Additional specificity for single item images */
+.mediaGrid.singleItem .gridItem img {
+  border-radius: var(--border-radius) !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
 }
 
 .gridVideoContainer {
@@ -192,6 +218,7 @@
   height: 100%;
   object-fit: cover;
   border-radius: var(--border-radius) !important; /* Add rounded corners to videos */
+  display: block !important;
 }
 
 .gridPlayButton {

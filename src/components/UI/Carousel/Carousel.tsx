@@ -112,8 +112,6 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
           <div 
             className={`${styles.mediaGrid} ${items.length <= 5 ? styles.singleItem : ''}`}
             style={items.length <= 5 ? {
-              backgroundColor: 'rgba(0, 255, 0, 0.5)',
-              border: '3px solid green',
               gridTemplateColumns: 'repeat(auto-fill, 150px)',
               justifyContent: 'start',
               height: 'auto',
@@ -129,14 +127,13 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                 <div 
                   key={index} 
                   className={styles.gridItem}
-                  style={items.length <= 5 ? {
-                    width: '150px',
-                    height: '150px',
+                  style={{
                     borderRadius: '8px',
-                    overflow: 'hidden'
-                  } : {
-                    borderRadius: '8px',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
+                    ...(items.length <= 5 ? {
+                      width: '150px',
+                      height: '150px'
+                    } : {})
                   }}
                   onClick={(e) => {
                     e.stopPropagation();

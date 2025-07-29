@@ -145,15 +145,13 @@
   justify-content: start !important; /* Align to left */
   height: auto !important; /* Allow height to adjust for wrapping */
   min-height: 150px !important; /* Minimum height for single item */
-  background-color: rgba(0, 255, 0, 0.5) !important; /* More visible debug color */
-  border: 3px solid green !important; /* Very visible border */
   gap: var(--spacing-sm) !important; /* Add gap between items */
 }
 
 .gridItem {
   aspect-ratio: 1;
   border-radius: var(--border-radius) !important;
-  overflow: hidden;
+  overflow: hidden !important;
   cursor: pointer;
   transition: transform 0.2s ease;
   position: relative;
@@ -166,6 +164,7 @@
   width: 150px !important; /* Larger width for single item */
   height: 150px !important; /* Larger height for single item */
   border-radius: var(--border-radius) !important; /* Ensure rounded corners */
+  overflow: hidden !important;
 }
 
 .gridItem:hover {
@@ -185,6 +184,7 @@
   position: relative;
   aspect-ratio: 1;
   border-radius: var(--border-radius) !important; /* Add rounded corners to video containers */
+  overflow: hidden !important;
 }
 
 .gridVideo {
@@ -247,8 +247,6 @@
     justify-content: start !important; /* Align to left */
     height: auto !important; /* Allow height to adjust for wrapping */
     min-height: 120px !important; /* Minimum height for single item on mobile */
-    background-color: rgba(0, 255, 0, 0.5) !important; /* More visible debug color */
-    border: 3px solid green !important; /* Very visible border */
     gap: var(--spacing-sm) !important; /* Add gap between items */
   }
 
@@ -262,6 +260,7 @@
     width: 120px !important; /* Larger width for single item on mobile */
     height: 120px !important; /* Larger height for single item on mobile */
     border-radius: var(--border-radius) !important; /* Ensure rounded corners */
+    overflow: hidden !important;
   }
 
   .gridPlayButton {

@@ -112,9 +112,11 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
             style={items.length === 1 ? {
               backgroundColor: 'rgba(0, 255, 0, 0.5)',
               border: '3px solid green',
-              gridTemplateColumns: '120px',
+              gridTemplateColumns: 'repeat(auto-fill, 150px)',
               justifyContent: 'start',
-              height: '120px'
+              height: 'auto',
+              minHeight: '150px',
+              gap: '8px'
             } : {}}
           >
             {items.map((item, index) => {
@@ -126,8 +128,9 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                   key={index} 
                   className={styles.gridItem}
                   style={items.length === 1 ? {
-                    width: '120px',
-                    height: '120px'
+                    width: '150px',
+                    height: '150px',
+                    borderRadius: '8px'
                   } : {}}
                   onClick={(e) => {
                     e.stopPropagation();

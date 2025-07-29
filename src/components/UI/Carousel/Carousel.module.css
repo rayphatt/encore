@@ -141,11 +141,13 @@
 
 /* Single item - show as larger left-aligned thumbnail */
 .mediaGrid.singleItem {
-  grid-template-columns: 120px; /* Larger width for single item */
+  grid-template-columns: repeat(auto-fill, 150px); /* Larger width and auto-fill for wrapping */
   justify-content: start; /* Align to left */
-  height: 120px; /* Larger height for single item */
+  height: auto; /* Allow height to adjust for wrapping */
+  min-height: 150px; /* Minimum height for single item */
   background-color: rgba(0, 255, 0, 0.5) !important; /* More visible debug color */
   border: 3px solid green !important; /* Very visible border */
+  gap: var(--spacing-sm); /* Add gap between items */
 }
 
 .gridItem {
@@ -161,8 +163,9 @@
 
 /* Single item styling - larger thumbnail */
 .mediaGrid.singleItem .gridItem {
-  width: 120px; /* Larger width for single item */
-  height: 120px; /* Larger height for single item */
+  width: 150px; /* Larger width for single item */
+  height: 150px; /* Larger height for single item */
+  border-radius: var(--border-radius); /* Ensure rounded corners */
 }
 
 .gridItem:hover {
@@ -173,6 +176,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: var(--border-radius); /* Add rounded corners to images */
 }
 
 .gridVideoContainer {
@@ -238,9 +242,13 @@
 
   /* Single item - show as larger thumbnail on mobile */
   .mediaGrid.singleItem {
-    grid-template-columns: 100px; /* Larger width for single item on mobile */
+    grid-template-columns: repeat(auto-fill, 120px); /* Larger width for single item on mobile */
     justify-content: start; /* Align to left */
-    height: 100px; /* Larger height for single item on mobile */
+    height: auto; /* Allow height to adjust for wrapping */
+    min-height: 120px; /* Minimum height for single item on mobile */
+    background-color: rgba(0, 255, 0, 0.5) !important; /* More visible debug color */
+    border: 3px solid green !important; /* Very visible border */
+    gap: var(--spacing-sm); /* Add gap between items */
   }
 
   .gridItem {
@@ -250,8 +258,9 @@
 
   /* Single item styling - larger thumbnail on mobile */
   .mediaGrid.singleItem .gridItem {
-    width: 100px; /* Larger width for single item on mobile */
-    height: 100px; /* Larger height for single item on mobile */
+    width: 120px; /* Larger width for single item on mobile */
+    height: 120px; /* Larger height for single item on mobile */
+    border-radius: var(--border-radius); /* Ensure rounded corners */
   }
 
   .gridPlayButton {

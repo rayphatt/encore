@@ -940,11 +940,12 @@ const Home = () => {
   const renderExistingImages = (images) => (
     <div className={styles.imagePreviewContainer}>
       {images.map((image, index) => {
-        // Check for video placeholders
+        // Check for video placeholders and thumbnails
         const isVideoPlaceholder = typeof image === 'string' && (image.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==') || image.includes('VmlkZW8gUGxhY2Vob2xkZXI='));
+        const isVideoThumbnail = typeof image === 'string' && image.startsWith('data:image/jpeg') && image.length > 10000;
         
         const isVideo = typeof image === 'string' 
-          ? (image.startsWith('data:video/') || isVideoPlaceholder)
+          ? (image.startsWith('data:video/') || image.startsWith('https://firebasestorage.googleapis.com/') || isVideoPlaceholder || isVideoThumbnail)
           : image.type.startsWith('video/');
         
         console.log(`=== RENDER EXISTING IMAGES DEBUG ===`);
@@ -956,12 +957,12 @@ const Home = () => {
           <div key={index} className={styles.imagePreview}>
             {isVideo ? (
               <div className={styles.videoPreview}>
-                {isVideoPlaceholder ? (
-                  // For video placeholders, show as image with play button overlay
+                {isVideoPlaceholder || isVideoThumbnail ? (
+                  // For video placeholders and thumbnails, show as image with play button overlay
                   <div className={styles.videoPreview}>
                     <img 
                       src={image} 
-                      alt="Video placeholder" 
+                      alt="Video thumbnail" 
                       className={styles.previewImage}
                     />
                     <div className={styles.videoPlayButton}>▶</div>
@@ -1029,12 +1030,15 @@ const Home = () => {
         // It's a URL string (existing image or video)
         console.log(`File ${index} is string:`, file.substring(0, 100) + '...');
         
-        // Check for video placeholders
+        // Check for video placeholders and thumbnails
         const isVideoPlaceholder = file.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==') || file.includes('VmlkZW8gUGxhY2Vob2xkZXI=');
+        
+        // Check if this is a video thumbnail (JPEG that represents a video)
+        const isVideoThumbnail = file.startsWith('data:image/jpeg') && file.length > 10000; // Large JPEGs are likely video thumbnails
         console.log(`File ${index} is video placeholder:`, isVideoPlaceholder);
         
-        if (file.startsWith('data:video/')) {
-          console.log(`File ${index} detected as video (data:video/)`);
+        if (file.startsWith('data:video/') || file.startsWith('https://firebasestorage.googleapis.com/')) {
+          console.log(`File ${index} detected as video (data:video/ or Firebase Storage)`);
           return {
             url: file,
             type: 'video'
@@ -1046,6 +1050,15 @@ const Home = () => {
             return {
               url: file,
               type: 'video'
+            };
+          }
+          // Check if this is a video thumbnail
+          if (isVideoThumbnail) {
+            console.log(`File ${index} detected as video thumbnail`);
+            return {
+              url: file,
+              type: 'video',
+              isThumbnail: true
             };
           }
           // All other data:image/ URLs are images
@@ -2147,7 +2160,7 @@ const Home = () => {
               <div className={styles.imageModalContent}>
                 {selectedImage && (
                   (selectedImage.type && selectedImage.type.startsWith('video/')) || 
-                  (typeof selectedImage === 'string' && (selectedImage.startsWith('data:video/') || selectedImage.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==') || selectedImage.includes('VmlkZW8gUGxhY2Vob2xkZXI='))) ? (
+                  (typeof selectedImage === 'string' && (selectedImage.startsWith('data:video/') || selectedImage.startsWith('https://firebasestorage.googleapis.com/') || selectedImage.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==') || selectedImage.includes('VmlkZW8gUGxhY2Vob2xkZXI='))) ? (
                     <video
                       src={typeof selectedImage === 'string' 
                         ? selectedImage 

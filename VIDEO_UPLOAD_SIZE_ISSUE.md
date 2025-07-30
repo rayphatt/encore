@@ -141,6 +141,36 @@ Video failed to load: data:video/mp4;base64,AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjM
 
 **User Impact**: Videos appear as blank boxes with play buttons that don't work.
 
+## 🚨 **NEW ISSUE: Video Thumbnail and Playback**
+
+### Problem: Generic Placeholder Instead of Real Video
+**Status**: 🔴 **CRITICAL** - Users expect actual video thumbnails and playback
+
+**User Feedback**: "The thumbnail display should be the first frame of the video as a thumbnail with the play button and when you click on it it should bring up the actual video."
+
+**Current Behavior**: Shows generic "Video Placeholder" instead of actual video content.
+
+**Desired Behavior**: 
+1. Show actual video thumbnail (first frame) with play button
+2. Click to open modal with real video playback
+3. Handle large videos that exceed Firestore limits
+
+## ✅ **SOLUTION IMPLEMENTED**
+
+### New Approach: Firebase Storage for Videos
+**Status**: ✅ **IMPLEMENTED** - Using Firebase Storage for video uploads
+
+**Solution**: 
+1. **Videos**: Upload to Firebase Storage, store download URLs in Firestore
+2. **Images**: Continue using compressed data URLs in Firestore
+3. **Thumbnails**: Browser generates thumbnails automatically from video URLs
+
+**Benefits**:
+- ✅ No size limits for videos (up to 25MB)
+- ✅ Real video playback in modal
+- ✅ Automatic thumbnail generation by browser
+- ✅ No more placeholder issues
+
 ---
 
 **Last Updated**: July 30, 2025

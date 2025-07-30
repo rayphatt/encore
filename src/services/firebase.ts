@@ -369,17 +369,63 @@ export const firebaseConcertService = {
     await deleteDoc(doc(db, 'concerts', concertId));
   },
 
-  // Upload images and videos to Firebase Storage
+  // Helper method to generate video thumbnail
+  async generateVideoThumbnail(videoFile: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      video.onloadedmetadata = () => {
+        // Set canvas size to thumbnail size
+        canvas.width = 300;
+        canvas.height = 200;
+        
+        // Seek to 0.1 seconds to get a good frame
+        video.currentTime = 0.1;
+      };
+      
+      video.onseeked = () => {
+        try {
+          // Draw the video frame to canvas
+          ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          // Convert to data URL
+          const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          console.log(`Generated thumbnail for ${videoFile.name} (${thumbnailDataUrl.length} bytes)`);
+          resolve(thumbnailDataUrl);
+        } catch (error) {
+          console.error('Error generating thumbnail:', error);
+          // Fallback to a simple placeholder
+          const fallbackThumbnail = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMzMzIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjEwMCIgcj0iNDAiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjgiLz4KPHBhdGggZD0iTTEzMCA5MGw0MCAyMC00MCAyMFY5MHoiIGZpbGw9IndoaXRlIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTgwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5WaWRlbyBQbGFjZWhvbGRlcjwvdGV4dD4KPC9zdmc+';
+          resolve(fallbackThumbnail);
+        }
+      };
+      
+      video.onerror = () => {
+        console.error('Error loading video for thumbnail generation');
+        // Fallback to a simple placeholder
+        const fallbackThumbnail = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMzMzIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjEwMCIgcj0iNDAiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjgiLz4KPHBhdGggZD0iTTEzMCA5MGw0MCAyMC00MCAyMFY5MHoiIGZpbGw9IndoaXRlIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTgwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5WaWRlbyBQbGFjZWhvbGRlcjwvdGV4dD4KPC9zdmc+';
+        resolve(fallbackThumbnail);
+      };
+      
+      // Load the video file
+      video.src = URL.createObjectURL(videoFile);
+      video.muted = true;
+      video.preload = 'metadata';
+    });
+  },
+
   async uploadImages(userId: string, images: File[]): Promise<string[]> {
     console.log('=== UPLOAD MEDIA DEBUG ===');
     console.log('userId:', userId);
     console.log('media files:', images);
     
-    // TEMPORARY: Use data URLs due to CORS issues with Firebase Storage
-    const BYPASS_FIREBASE_STORAGE = true;
+    // Use Firebase Storage for videos, data URLs for images
+    const USE_FIREBASE_STORAGE_FOR_VIDEOS = true;
     
-    if (BYPASS_FIREBASE_STORAGE) {
-      console.log('Bypassing Firebase Storage due to CORS issues - using compressed data URLs');
+    if (USE_FIREBASE_STORAGE_FOR_VIDEOS) {
+      console.log('Using Firebase Storage for videos, data URLs for images');
       
       const dataUrls: string[] = [];
       
@@ -389,63 +435,26 @@ export const firebaseConcertService = {
         
         try {
           if (file.type.startsWith('video/')) {
-            // Handle video files - check size BEFORE processing
+            // Handle video files - upload to Firebase Storage
             if (file.size > 25 * 1024 * 1024) { // 25MB limit for videos
               console.warn(`Video file ${file.name} is too large (${file.size} bytes). Skipping.`);
               continue;
             }
             
-            // Check if video is too large for Firestore BEFORE creating data URL
-            if (file.size > 800000) { // 800KB limit for Firestore
-              console.warn(`Video ${file.name} is too large for Firestore (${file.size} bytes). Using placeholder.`);
-              
-              // Create a small video placeholder that can be stored in Firestore
-              // Using an image placeholder that looks like a video thumbnail
-              const placeholderVideo = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMzMzIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjEwMCIgcj0iNDAiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjgiLz4KPHBhdGggZD0iTTEzMCA5MGw0MCAyMC00MCAyMFY5MHoiIGZpbGw9IndoaXRlIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTgwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5WaWRlbyBQbGFjZWhvbGRlcjwvdGV4dD4KPC9zdmc+';
-              
-              dataUrls.push(placeholderVideo);
-              console.log(`Completed video ${index} with placeholder`);
-              continue;
-            }
-            
             console.log(`Processing video file ${index}...`);
-            const videoUrl = await new Promise<string>((resolve, reject) => {
-              const timeout = setTimeout(() => {
-                reject(new Error(`Video file ${file.name} took too long to process`));
-              }, 15000); // 15 second timeout
-              
-              const reader = new FileReader();
-              
-              reader.onload = () => {
-                try {
-                  clearTimeout(timeout);
-                  const dataUrl = reader.result as string;
-                  console.log(`Created video data URL for video ${index} (${dataUrl.length} bytes)`);
-                  
-                  // Check if too large for internal processing
-                  if (dataUrl.length > 25000000) { // 25MB limit for video data URLs
-                    console.warn(`Video ${file.name} is too large (${dataUrl.length} bytes). Skipping.`);
-                    reject(new Error(`Video ${file.name} is too large. Please try a shorter video.`));
-                    return;
-                  }
-                  
-                  // Store the actual video data URL (it's small enough since we checked file size)
-                  console.log(`Storing actual video data URL for ${file.name} (${dataUrl.length} bytes)`);
-                  resolve(dataUrl);
-                } catch (error) {
-                  clearTimeout(timeout);
-                  reject(error);
-                }
-              };
-              
-              reader.onerror = () => {
-                clearTimeout(timeout);
-                reject(new Error(`Failed to read video: ${file.name}`));
-              };
-              
-              reader.readAsDataURL(file);
-            });
-            dataUrls.push(videoUrl);
+            
+            // Upload video to Firebase Storage
+            const timestamp = Date.now();
+            const fileName = `concerts/${userId}/${timestamp}_${index}_${file.name}`;
+            const videoRef = ref(storage, fileName);
+            
+            console.log('Uploading video to Firebase Storage:', fileName);
+            await uploadBytes(videoRef, file);
+            console.log('Video upload successful, getting download URL...');
+            const downloadURL = await getDownloadURL(videoRef);
+            console.log('Video download URL obtained:', downloadURL);
+            
+            dataUrls.push(downloadURL);
             console.log(`Completed video ${index}`);
             
           } else {
@@ -507,7 +516,7 @@ export const firebaseConcertService = {
         }
       }
       
-      console.log('=== END UPLOAD MEDIA DEBUG (BYPASSED) ===');
+      console.log('=== END UPLOAD MEDIA DEBUG ===');
       return dataUrls;
     }
     

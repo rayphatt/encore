@@ -940,9 +940,17 @@ const Home = () => {
   const renderExistingImages = (images) => (
     <div className={styles.imagePreviewContainer}>
       {images.map((image, index) => {
+        // Debug: Check for video placeholder
+        const isVideoPlaceholder = typeof image === 'string' && image.includes('AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAGxtZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbHMgd2l0aCBJQ0MgU01FMyBRMTYgKENvYWRlYykgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy8yMDIwL0EyL0FSLzIwL0FDLzIwL0FGLzIwL0FHLzIwL0FJLzIwL0FKLzIwL0FLLzIwL0FMLzIwL0FNLzIwL0FOLzIwL0FPLzIwL0FQLzIwL0FRLzIwL0FSLzIwL0FTLzIwL0FULzIwL0FVLzIwL0FWLzIwL0FXLzIwL0FYLzIwL0FZLzIwL0Fa');
+        
         const isVideo = typeof image === 'string' 
-          ? (image.startsWith('data:video/') || image.includes('AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAGxtZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbHMgd2l0aCBJQ0MgU01FMyBRMTYgKENvYWRlYykgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy8yMDIwL0EyL0FSLzIwL0FDLzIwL0FGLzIwL0FHLzIwL0FJLzIwL0FKLzIwL0FLLzIwL0FMLzIwL0FNLzIwL0FOLzIwL0FPLzIwL0FQLzIwL0FRLzIwL0FSLzIwL0FTLzIwL0FULzIwL0FVLzIwL0FWLzIwL0FXLzIwL0FYLzIwL0FZLzIwL0Fa'))
+          ? (image.startsWith('data:video/') || isVideoPlaceholder)
           : image.type.startsWith('video/');
+        
+        console.log(`=== RENDER EXISTING IMAGES DEBUG ===`);
+        console.log(`Image ${index}:`, typeof image === 'string' ? image.substring(0, 100) + '...' : image);
+        console.log(`Image ${index} is video placeholder:`, isVideoPlaceholder);
+        console.log(`Image ${index} is video:`, isVideo);
         
         return (
           <div key={index} className={styles.imagePreview}>
@@ -997,6 +1005,7 @@ const Home = () => {
   const convertFilesToMediaItems = (files) => {
     if (!files || files.length === 0) return [];
     
+    console.log('=== CONVERT FILES TO MEDIA ITEMS DEBUG ===');
     console.log('Converting files to media items:', files);
     
     return files.map((file, index) => {
@@ -1004,15 +1013,20 @@ const Home = () => {
       if (typeof file === 'string') {
         // It's a URL string (existing image or video)
         console.log(`File ${index} is string:`, file.substring(0, 100) + '...');
+        
+        // Debug: Check for video placeholder
+        const isVideoPlaceholder = file.includes('AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAGxtZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbHMgd2l0aCBJQ0MgU01FMyBRMTYgKENvYWRlYykgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy8yMDIwL0EyL0FSLzIwL0FDLzIwL0FGLzIwL0FHLzIwL0FJLzIwL0FKLzIwL0FLLzIwL0FMLzIwL0FNLzIwL0FOLzIwL0FPLzIwL0FQLzIwL0FRLzIwL0FSLzIwL0FTLzIwL0FULzIwL0FVLzIwL0FWLzIwL0FXLzIwL0FYLzIwL0FZLzIwL0Fa');
+        console.log(`File ${index} is video placeholder:`, isVideoPlaceholder);
+        
         if (file.startsWith('data:video/')) {
-          console.log(`File ${index} detected as video`);
+          console.log(`File ${index} detected as video (data:video/)`);
           return {
             url: file,
             type: 'video'
           };
         } else if (file.startsWith('data:image/')) {
           // Check if this is our video placeholder (small MP4)
-          if (file.includes('AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAGxtZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbHMgd2l0aCBJQ0MgU01FMyBRMTYgKENvYWRlYykgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy8yMDIwL0EyL0FSLzIwL0FDLzIwL0FGLzIwL0FHLzIwL0FJLzIwL0FKLzIwL0FLLzIwL0FMLzIwL0FNLzIwL0FOLzIwL0FPLzIwL0FQLzIwL0FRLzIwL0FSLzIwL0FTLzIwL0FULzIwL0FVLzIwL0FWLzIwL0FXLzIwL0FYLzIwL0FZLzIwL0Fa')) {
+          if (isVideoPlaceholder) {
             console.log(`File ${index} detected as video placeholder`);
             return {
               url: file,

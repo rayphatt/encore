@@ -941,7 +941,7 @@ const Home = () => {
     <div className={styles.imagePreviewContainer}>
       {images.map((image, index) => {
         // Check for video placeholders and thumbnails
-        const isVideoPlaceholder = typeof image === 'string' && (image.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==') || image.includes('VmlkZW8gUGxhY2Vob2xkZXI='));
+        const isVideoPlaceholder = typeof image === 'string' && (image.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==') || image.includes('VmlkZW8gUGxhY2Vob2xkZXI=') || image.includes('Video Placeholder'));
         // REMOVED: Large JPEGs are NOT video thumbnails - they are just large photos
         const isVideoThumbnail = false; // Disabled incorrect detection
         
@@ -1040,7 +1040,7 @@ const Home = () => {
         console.log(`File ${index} is string:`, file.substring(0, 100) + '...');
         
         // Check for video placeholders and thumbnails
-        const isVideoPlaceholder = file.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==') || file.includes('VmlkZW8gUGxhY2Vob2xkZXI=');
+        const isVideoPlaceholder = file.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==') || file.includes('VmlkZW8gUGxhY2Vob2xkZXI=') || file.includes('Video Placeholder');
         
         // Check if this is a video thumbnail (JPEG that represents a video)
         // REMOVED: Large JPEGs are NOT video thumbnails - they are just large photos

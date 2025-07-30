@@ -419,9 +419,9 @@ export const firebaseConcertService = {
                   // Check if too large for Firestore (1MB document limit)
                   if (dataUrl.length > 800000) { // 800KB limit to be safe for Firestore
                     console.warn(`Video ${file.name} is too large for Firestore (${dataUrl.length} bytes). Using placeholder.`);
-                    // Return a video placeholder image that looks like a video but doesn't try to play
-                    // This prevents the "Video failed to load" errors
-                    const placeholderVideo = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8cGF0aCBkPSJNMjggMjBMMzYgMzJMMjggNDRWMjBaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K';
+                    // Return a video placeholder image (just a grey square, no play button)
+                    // The CSS will add the play button overlay
+                    const placeholderVideo = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8L3N2Zz4K';
                     resolve(placeholderVideo);
                     return;
                   }

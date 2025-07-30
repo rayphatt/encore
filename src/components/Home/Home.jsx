@@ -940,8 +940,8 @@ const Home = () => {
   const renderExistingImages = (images) => (
     <div className={styles.imagePreviewContainer}>
       {images.map((image, index) => {
-        // Debug: Check for video placeholder (SVG with play button)
-        const isVideoPlaceholder = typeof image === 'string' && image.includes('PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8cGF0aCBkPSJNMjggMjBMMzYgMzJMMjggNDRWMjBaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K');
+        // Debug: Check for video placeholder (SVG grey square, no play button)
+        const isVideoPlaceholder = typeof image === 'string' && image.includes('PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8L3N2Zz4K');
         
         const isVideo = typeof image === 'string' 
           ? (image.startsWith('data:video/') || isVideoPlaceholder)
@@ -1023,8 +1023,8 @@ const Home = () => {
         // It's a URL string (existing image or video)
         console.log(`File ${index} is string:`, file.substring(0, 100) + '...');
         
-        // Debug: Check for video placeholder (SVG with play button)
-        const isVideoPlaceholder = file.includes('PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8cGF0aCBkPSJNMjggMjBMMzYgMzJMMjggNDRWMjBaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K');
+        // Debug: Check for video placeholder (SVG grey square, no play button)
+        const isVideoPlaceholder = file.includes('PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8L3N2Zz4K');
         console.log(`File ${index} is video placeholder:`, isVideoPlaceholder);
         
         if (file.startsWith('data:video/')) {

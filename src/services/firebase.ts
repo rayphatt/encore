@@ -263,10 +263,68 @@ export const firebaseConcertService = {
     const dataSize = JSON.stringify(updateData).length;
     console.log('Total data size:', dataSize, 'bytes');
     
-    // Firestore has a 1MB document size limit - be very conservative
+    // Firestore has a 1MB document size limit - implement chunked uploads
     if (dataSize > 500000) { // 500KB limit to be safe
       console.error('Data too large for Firestore:', dataSize, 'bytes');
-      throw new Error('Uploaded files are too large. Please try with smaller files (under 5MB each).');
+      
+      // Check if we have multiple files that can be split
+      const newImages = concertData.images?.filter(img => 
+        typeof img === 'object' && img !== null && 'name' in img && 'type' in img
+      ) as File[];
+      
+      if (newImages && newImages.length > 1) {
+        console.log('Attempting chunked upload - splitting files into smaller batches');
+        
+        // Split files into smaller batches
+        const batchSize = Math.ceil(newImages.length / 2); // Split into 2 batches
+        const batch1 = newImages.slice(0, batchSize);
+        const batch2 = newImages.slice(batchSize);
+        
+        console.log(`Splitting ${newImages.length} files into batches of ${batchSize} and ${batch2.length}`);
+        
+        // Get the concert to find userId for upload path
+        const concertDoc = await getDoc(doc(db, 'concerts', concertId));
+        const concert = concertDoc.data();
+        
+        if (!concert) {
+          throw new Error('Concert not found');
+        }
+        
+        // Upload first batch
+        if (batch1.length > 0) {
+          const uploadedUrls1 = await this.uploadImages(concert.userId, batch1);
+          const existingImages = concertData.images?.filter(img => typeof img === 'string') as string[];
+          const updateData1 = {
+            ...concertData,
+            images: [...existingImages, ...uploadedUrls1],
+            updatedAt: new Date().toISOString()
+          };
+          
+          await updateDoc(doc(db, 'concerts', concertId), updateData1);
+          console.log('First batch uploaded successfully');
+        }
+        
+        // Upload second batch if it exists
+        if (batch2.length > 0) {
+          const uploadedUrls2 = await this.uploadImages(concert.userId, batch2);
+          const currentDoc = await getDoc(doc(db, 'concerts', concertId));
+          const currentData = currentDoc.data();
+          const currentImages = currentData?.images || [];
+          
+          const updateData2 = {
+            images: [...currentImages, ...uploadedUrls2],
+            updatedAt: new Date().toISOString()
+          };
+          
+          await updateDoc(doc(db, 'concerts', concertId), updateData2);
+          console.log('Second batch uploaded successfully');
+        }
+        
+        console.log('Chunked upload completed successfully');
+        return;
+      } else {
+        throw new Error('Uploaded files are too large. Please try with fewer or smaller files (under 5MB each).');
+      }
     }
     
     try {

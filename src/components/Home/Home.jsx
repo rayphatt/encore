@@ -942,7 +942,8 @@ const Home = () => {
       {images.map((image, index) => {
         // Check for video placeholders and thumbnails
         const isVideoPlaceholder = typeof image === 'string' && (image.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==') || image.includes('VmlkZW8gUGxhY2Vob2xkZXI='));
-        const isVideoThumbnail = typeof image === 'string' && image.startsWith('data:image/jpeg') && image.length > 10000;
+        // REMOVED: Large JPEGs are NOT video thumbnails - they are just large photos
+        const isVideoThumbnail = false; // Disabled incorrect detection
         
         const isVideo = typeof image === 'string' 
           ? (image.startsWith('data:video/') || image.startsWith('https://firebasestorage.googleapis.com/') || isVideoPlaceholder || isVideoThumbnail)
@@ -1034,7 +1035,8 @@ const Home = () => {
         const isVideoPlaceholder = file.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==') || file.includes('VmlkZW8gUGxhY2Vob2xkZXI=');
         
         // Check if this is a video thumbnail (JPEG that represents a video)
-        const isVideoThumbnail = file.startsWith('data:image/jpeg') && file.length > 10000; // Large JPEGs are likely video thumbnails
+        // REMOVED: Large JPEGs are NOT video thumbnails - they are just large photos
+        const isVideoThumbnail = false; // Disabled incorrect detection
         console.log(`File ${index} is video placeholder:`, isVideoPlaceholder);
         
         if (file.startsWith('data:video/') || file.startsWith('https://firebasestorage.googleapis.com/')) {

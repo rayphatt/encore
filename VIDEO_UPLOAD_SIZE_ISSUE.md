@@ -157,19 +157,20 @@ Video failed to load: data:video/mp4;base64,AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjM
 
 ## ✅ **SOLUTION IMPLEMENTED**
 
-### New Approach: Firebase Storage for Videos
-**Status**: ✅ **IMPLEMENTED** - Using Firebase Storage for video uploads
+### Current Approach: Data URLs with Size Limits
+**Status**: ✅ **IMPLEMENTED** - Using data URLs with size limits due to CORS issues
 
 **Solution**: 
-1. **Videos**: Upload to Firebase Storage, store download URLs in Firestore
-2. **Images**: Continue using compressed data URLs in Firestore
-3. **Thumbnails**: Browser generates thumbnails automatically from video URLs
+1. **Videos**: Store as data URLs in Firestore (up to 800KB)
+2. **Large Videos**: Use SVG placeholder for videos > 800KB
+3. **Images**: Continue using compressed data URLs in Firestore
+4. **Detection**: Fixed photo detection bug - large JPEGs are photos, not video thumbnails
 
 **Benefits**:
-- ✅ No size limits for videos (up to 25MB)
-- ✅ Real video playback in modal
-- ✅ Automatic thumbnail generation by browser
-- ✅ No more placeholder issues
+- ✅ Works around CORS issues with Firebase Storage
+- ✅ Real video playback for small videos
+- ✅ Proper photo detection (no more photos with play buttons)
+- ✅ Placeholder for large videos that exceed Firestore limits
 
 ---
 

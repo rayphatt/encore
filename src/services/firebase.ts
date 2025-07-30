@@ -421,11 +421,11 @@ export const firebaseConcertService = {
     console.log('userId:', userId);
     console.log('media files:', images);
     
-    // Use Firebase Storage for videos, data URLs for images
-    const USE_FIREBASE_STORAGE_FOR_VIDEOS = true;
+    // TEMPORARY: Use data URLs due to CORS issues with Firebase Storage
+    const BYPASS_FIREBASE_STORAGE = true;
     
-    if (USE_FIREBASE_STORAGE_FOR_VIDEOS) {
-      console.log('Using Firebase Storage for videos, data URLs for images');
+    if (BYPASS_FIREBASE_STORAGE) {
+      console.log('Bypassing Firebase Storage due to CORS issues - using compressed data URLs');
       
       const dataUrls: string[] = [];
       
@@ -434,30 +434,67 @@ export const firebaseConcertService = {
         console.log(`Processing file ${index}: ${file.name} (${file.size} bytes)`);
         
         try {
-          if (file.type.startsWith('video/')) {
-            // Handle video files - upload to Firebase Storage
-            if (file.size > 25 * 1024 * 1024) { // 25MB limit for videos
-              console.warn(`Video file ${file.name} is too large (${file.size} bytes). Skipping.`);
-              continue;
-            }
+                  if (file.type.startsWith('video/')) {
+          // Handle video files - check size BEFORE processing
+          if (file.size > 25 * 1024 * 1024) { // 25MB limit for videos
+            console.warn(`Video file ${file.name} is too large (${file.size} bytes). Skipping.`);
+            continue;
+          }
+          
+          // Check if video is too large for Firestore BEFORE creating data URL
+          if (file.size > 800000) { // 800KB limit for Firestore
+            console.warn(`Video ${file.name} is too large for Firestore (${file.size} bytes). Using placeholder.`);
             
-            console.log(`Processing video file ${index}...`);
+            // Create a small video placeholder that can be stored in Firestore
+            // Using an image placeholder that looks like a video thumbnail
+            const placeholderVideo = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMzMzIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjEwMCIgcj0iNDAiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjgiLz4KPHBhdGggZD0iTTEzMCA5MGw0MCAyMC00MCAyMFY5MHoiIGZpbGw9IndoaXRlIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTgwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5WaWRlbyBQbGFjZWhvbGRlcjwvdGV4dD4KPC9zdmc+';
             
-            // Upload video to Firebase Storage
-            const timestamp = Date.now();
-            const fileName = `concerts/${userId}/${timestamp}_${index}_${file.name}`;
-            const videoRef = ref(storage, fileName);
+            dataUrls.push(placeholderVideo);
+            console.log(`Completed video ${index} with placeholder`);
+            continue;
+          }
+          
+          console.log(`Processing video file ${index}...`);
+          const videoUrl = await new Promise<string>((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              reject(new Error(`Video file ${file.name} took too long to process`));
+            }, 15000); // 15 second timeout
             
-            console.log('Uploading video to Firebase Storage:', fileName);
-            await uploadBytes(videoRef, file);
-            console.log('Video upload successful, getting download URL...');
-            const downloadURL = await getDownloadURL(videoRef);
-            console.log('Video download URL obtained:', downloadURL);
+            const reader = new FileReader();
             
-            dataUrls.push(downloadURL);
-            console.log(`Completed video ${index}`);
+            reader.onload = () => {
+              try {
+                clearTimeout(timeout);
+                const dataUrl = reader.result as string;
+                console.log(`Created video data URL for video ${index} (${dataUrl.length} bytes)`);
+                
+                // Check if too large for internal processing
+                if (dataUrl.length > 25000000) { // 25MB limit for video data URLs
+                  console.warn(`Video ${file.name} is too large (${dataUrl.length} bytes). Skipping.`);
+                  reject(new Error(`Video ${file.name} is too large. Please try a shorter video.`));
+                  return;
+                }
+                
+                // Store the actual video data URL (it's small enough since we checked file size)
+                console.log(`Storing actual video data URL for ${file.name} (${dataUrl.length} bytes)`);
+                resolve(dataUrl);
+              } catch (error) {
+                clearTimeout(timeout);
+                reject(error);
+              }
+            };
             
-          } else {
+            reader.onerror = () => {
+              clearTimeout(timeout);
+              reject(new Error(`Failed to read video: ${file.name}`));
+            };
+            
+            reader.readAsDataURL(file);
+          });
+          dataUrls.push(videoUrl);
+          console.log(`Completed video ${index}`);
+          
+        } else {
             // Handle image files with aggressive compression
             console.log(`Processing image file ${index}...`);
             const imageUrl = await new Promise<string>((resolve, reject) => {

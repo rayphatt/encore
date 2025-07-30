@@ -939,22 +939,44 @@ const Home = () => {
 
   const renderExistingImages = (images) => (
     <div className={styles.imagePreviewContainer}>
-      {images.map((image, index) => (
-        <div key={index} className={styles.imagePreview}>
-          <img 
-            src={typeof image === 'string' ? image : URL.createObjectURL(image)} 
-            alt={`Existing photo ${index + 1}`} 
-            className={styles.previewImage}
-          />
-          <button
-            type="button"
-            className={styles.removeImage}
-            onClick={() => handleDeleteExistingImage(index)}
-          >
-            ×
-          </button>
-        </div>
-      ))}
+      {images.map((image, index) => {
+        const isVideo = typeof image === 'string' 
+          ? image.startsWith('data:video/')
+          : image.type.startsWith('video/');
+        
+        return (
+          <div key={index} className={styles.imagePreview}>
+            {isVideo ? (
+              <div className={styles.videoPreview}>
+                <video 
+                  src={typeof image === 'string' 
+                    ? (image.startsWith('data:image/') ? undefined : image) // undefined src for legacy JPEG "videos"
+                    : URL.createObjectURL(image)} 
+                  className={styles.previewImage}
+                  muted
+                  preload="metadata"
+                  playsInline
+                  poster={typeof image === 'string' && image.startsWith('data:image/') ? image : undefined} // Use as poster only if it's an image (legacy video thumbnail)
+                />
+                <div className={styles.videoPlayButton}>▶</div>
+              </div>
+            ) : (
+              <img 
+                src={typeof image === 'string' ? image : URL.createObjectURL(image)} 
+                alt={`Existing photo ${index + 1}`} 
+                className={styles.previewImage}
+              />
+            )}
+            <button
+              type="button"
+              className={styles.removeImage}
+              onClick={() => handleDeleteExistingImage(index)}
+            >
+              ×
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 
@@ -989,14 +1011,11 @@ const Home = () => {
             type: 'video'
           };
         } else if (file.startsWith('data:image/')) {
-          // Check if this might be a video thumbnail (JPEG from old video compression)
-          // Large JPEG files (>50KB) are likely video thumbnails
-          const isLikelyVideoThumbnail = file.length > 50000;
-          
-          console.log(`File ${index} detected as image, size: ${file.length}, likely video thumbnail: ${isLikelyVideoThumbnail}`);
+          // All data:image/ URLs are images, regardless of size
+          console.log(`File ${index} detected as image`);
           return {
             url: file,
-            type: isLikelyVideoThumbnail ? 'video' : 'image'
+            type: 'image'
           };
         } else {
           // For other URL types, try to detect by file extension or content
@@ -2093,13 +2112,16 @@ const Home = () => {
                   (selectedImage.type && selectedImage.type.startsWith('video/')) || 
                   (typeof selectedImage === 'string' && selectedImage.startsWith('data:video/')) ? (
                     <video
-                      src={typeof selectedImage === 'string' ? selectedImage : URL.createObjectURL(selectedImage)}
+                      src={typeof selectedImage === 'string' 
+                        ? selectedImage 
+                        : URL.createObjectURL(selectedImage)}
                       controls
                       autoPlay
                       className={styles.fullSizeImage}
                       onError={(e) => console.error('Modal video error:', e)}
                       playsInline
                       webkit-playsinline="true"
+                      poster={undefined}
                     />
                   ) : (
                     <img

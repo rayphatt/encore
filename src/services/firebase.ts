@@ -409,10 +409,19 @@ export const firebaseConcertService = {
                   const dataUrl = reader.result as string;
                   console.log(`Created video data URL for video ${index} (${dataUrl.length} bytes)`);
                   
-                  // Check if too large
-                  if (dataUrl.length > 5000000) { // 5MB limit for video data URLs
+                  // Check if too large for internal processing
+                  if (dataUrl.length > 25000000) { // 25MB limit for video data URLs
                     console.warn(`Video ${file.name} is too large (${dataUrl.length} bytes). Skipping.`);
                     reject(new Error(`Video ${file.name} is too large. Please try a shorter video.`));
+                    return;
+                  }
+                  
+                  // Check if too large for Firestore (1MB document limit)
+                  if (dataUrl.length > 800000) { // 800KB limit to be safe for Firestore
+                    console.warn(`Video ${file.name} is too large for Firestore (${dataUrl.length} bytes). Using placeholder.`);
+                    // Return a small placeholder video icon instead of the full video
+                    const placeholderVideoIcon = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8cGF0aCBkPSJNMjggMjBMMzYgMzJMMjggNDRWMjBaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K';
+                    resolve(placeholderVideoIcon);
                     return;
                   }
                   

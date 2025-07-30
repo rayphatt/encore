@@ -176,7 +176,7 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                         muted
                         preload="metadata"
                         playsInline
-                        poster={itemUrl} // Use the same URL as poster for thumbnail
+                        poster={undefined}
                         onEnded={() => handleVideoEnded(index)}
                         onPause={() => handleVideoPause(index)}
                         onError={(e) => {

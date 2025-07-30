@@ -940,8 +940,8 @@ const Home = () => {
   const renderExistingImages = (images) => (
     <div className={styles.imagePreviewContainer}>
       {images.map((image, index) => {
-        // No longer using video placeholders - all videos are actual video data URLs
-        const isVideoPlaceholder = false;
+        // Check for video placeholders
+        const isVideoPlaceholder = typeof image === 'string' && image.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==');
         
         const isVideo = typeof image === 'string' 
           ? (image.startsWith('data:video/') || isVideoPlaceholder)
@@ -1014,8 +1014,8 @@ const Home = () => {
         // It's a URL string (existing image or video)
         console.log(`File ${index} is string:`, file.substring(0, 100) + '...');
         
-        // No longer using video placeholders - all videos are actual video data URLs
-        const isVideoPlaceholder = false;
+        // Check for video placeholders
+        const isVideoPlaceholder = file.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==');
         console.log(`File ${index} is video placeholder:`, isVideoPlaceholder);
         
         if (file.startsWith('data:video/')) {
@@ -2132,7 +2132,7 @@ const Home = () => {
               <div className={styles.imageModalContent}>
                 {selectedImage && (
                   (selectedImage.type && selectedImage.type.startsWith('video/')) || 
-                  (typeof selectedImage === 'string' && (selectedImage.startsWith('data:video/') || selectedImage.includes('AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAGxtZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbHMgd2l0aCBJQ0MgU01FMyBRMTYgKENvYWRlYykgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy8yMDIwL0EyL0FSLzIwL0FDLzIwL0FGLzIwL0FHLzIwL0FJLzIwL0FKLzIwL0FLLzIwL0FMLzIwL0FNLzIwL0FOLzIwL0FPLzIwL0FQLzIwL0FRLzIwL0FSLzIwL0FTLzIwL0FULzIwL0FVLzIwL0FWLzIwL0FXLzIwL0FYLzIwL0FZLzIwL0Fa'))) ? (
+                  (typeof selectedImage === 'string' && (selectedImage.startsWith('data:video/') || selectedImage.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg=='))) ? (
                     <video
                       src={typeof selectedImage === 'string' 
                         ? selectedImage 

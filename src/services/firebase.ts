@@ -389,9 +389,21 @@ export const firebaseConcertService = {
         
         try {
           if (file.type.startsWith('video/')) {
-            // Handle video files - use original video as data URL
+            // Handle video files - check size BEFORE processing
             if (file.size > 25 * 1024 * 1024) { // 25MB limit for videos
               console.warn(`Video file ${file.name} is too large (${file.size} bytes). Skipping.`);
+              continue;
+            }
+            
+            // Check if video is too large for Firestore BEFORE creating data URL
+            if (file.size > 800000) { // 800KB limit for Firestore
+              console.warn(`Video ${file.name} is too large for Firestore (${file.size} bytes). Using placeholder.`);
+              
+              // Create a small video placeholder that can be stored in Firestore
+              const placeholderVideo = 'data:video/mp4;base64,AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==';
+              
+              dataUrls.push(placeholderVideo);
+              console.log(`Completed video ${index} with placeholder`);
               continue;
             }
             
@@ -416,10 +428,8 @@ export const firebaseConcertService = {
                     return;
                   }
                   
-                  // Store the actual video data URL (Firestore can handle larger documents)
-                  // The video will be used for playback, and we'll generate thumbnails from it
+                  // Store the actual video data URL (it's small enough since we checked file size)
                   console.log(`Storing actual video data URL for ${file.name} (${dataUrl.length} bytes)`);
-                  
                   resolve(dataUrl);
                 } catch (error) {
                   clearTimeout(timeout);

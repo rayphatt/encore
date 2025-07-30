@@ -956,16 +956,25 @@ const Home = () => {
           <div key={index} className={styles.imagePreview}>
             {isVideo ? (
               <div className={styles.videoPreview}>
-                <video 
-                  src={typeof image === 'string' 
-                    ? (image.startsWith('data:image/') ? undefined : image) // undefined src for legacy JPEG "videos"
-                    : URL.createObjectURL(image)} 
-                  className={styles.previewImage}
-                  muted
-                  preload="metadata"
-                  playsInline
-                  poster={typeof image === 'string' && image.startsWith('data:image/') ? image : undefined} // Use as poster only if it's an image (legacy video thumbnail)
-                />
+                {/* For SVG placeholders, render as image instead of video */}
+                {typeof image === 'string' && image.startsWith('data:image/svg+xml') ? (
+                  <img 
+                    src={image}
+                    className={styles.previewImage}
+                    alt="Video placeholder"
+                  />
+                ) : (
+                  <video 
+                    src={typeof image === 'string' 
+                      ? (image.startsWith('data:image/') ? undefined : image) // undefined src for legacy JPEG "videos"
+                      : URL.createObjectURL(image)} 
+                    className={styles.previewImage}
+                    muted
+                    preload="metadata"
+                    playsInline
+                    poster={typeof image === 'string' && image.startsWith('data:image/') ? image : undefined} // Use as poster only if it's an image (legacy video thumbnail)
+                  />
+                )}
                 <div className={styles.videoPlayButton}>▶</div>
               </div>
             ) : (

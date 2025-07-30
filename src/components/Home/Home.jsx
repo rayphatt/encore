@@ -898,22 +898,41 @@ const Home = () => {
         />
       )}
       <div className={styles.previewThumbnails}>
-        {images.map((image, index) => (
-          <div key={index} className={styles.imagePreview}>
-            <img 
-              src={typeof image === 'string' ? image : URL.createObjectURL(image)} 
-              alt={`Preview ${index + 1}`} 
-              className={styles.previewImage}
-            />
-            <button
-              type="button"
-              className={styles.removeImage}
-              onClick={() => onRemove(index, isEditing)}
-            >
-              ×
-            </button>
-          </div>
-        ))}
+        {images.map((image, index) => {
+          const isVideo = typeof image === 'string' 
+            ? image.startsWith('data:video/') 
+            : image.type.startsWith('video/');
+          
+          return (
+            <div key={index} className={styles.imagePreview}>
+              {isVideo ? (
+                <div className={styles.videoPreview}>
+                  <video 
+                    src={typeof image === 'string' ? image : URL.createObjectURL(image)} 
+                    className={styles.previewImage}
+                    muted
+                    preload="metadata"
+                    playsInline
+                  />
+                  <div className={styles.videoPlayButton}>▶</div>
+                </div>
+              ) : (
+                <img 
+                  src={typeof image === 'string' ? image : URL.createObjectURL(image)} 
+                  alt={`Preview ${index + 1}`} 
+                  className={styles.previewImage}
+                />
+              )}
+              <button
+                type="button"
+                className={styles.removeImage}
+                onClick={() => onRemove(index, isEditing)}
+              >
+                ×
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -1077,6 +1096,7 @@ const Home = () => {
       }
 
       console.log('Updating concert with images:', allImages.length);
+      console.log('Image types:', allImages.map(img => typeof img === 'string' ? 'string' : img.type));
 
       // Update the concert in the database with timeout
       const updatePromise = updateConcert(editingConcert.id, {
@@ -1090,10 +1110,20 @@ const Home = () => {
 
       // Add timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Update timed out')), 60000); // 60 second timeout
+        setTimeout(() => reject(new Error('Update timed out')), 30000); // Reduced to 30 second timeout
       });
 
-      await Promise.race([updatePromise, timeoutPromise]);
+      try {
+        await Promise.race([updatePromise, timeoutPromise]);
+      } catch (error) {
+        console.error('Update failed:', error);
+        if (error.message.includes('timed out')) {
+          showToast('Upload timed out. Please try again with smaller files.', 'error');
+        } else {
+          showToast('Failed to update concert. Please try again.', 'error');
+        }
+        throw error; // Re-throw to be caught by outer catch block
+      }
 
       console.log('Concert updated successfully:', editingConcert);
       showToast('Concert updated successfully!', 'success');

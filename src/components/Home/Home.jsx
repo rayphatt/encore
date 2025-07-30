@@ -703,24 +703,51 @@ const Home = () => {
     const files = Array.from(event.target.files);
     console.log('Files selected:', files);
     
-    const mediaFiles = files.filter(file => 
-      file.type.startsWith('image/') || file.type.startsWith('video/')
-    );
-    console.log('Media files filtered:', mediaFiles);
+    // Check file sizes and types
+    const validFiles = [];
+    const invalidFiles = [];
+    
+    files.forEach(file => {
+      const isVideo = file.type.startsWith('video/');
+      const isImage = file.type.startsWith('image/');
+      const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // 50MB for videos, 10MB for images
+      
+      if (!isVideo && !isImage) {
+        invalidFiles.push(`${file.name} (unsupported file type)`);
+      } else if (file.size > maxSize) {
+        invalidFiles.push(`${file.name} (file too large - max ${isVideo ? '50MB' : '10MB'})`);
+      } else {
+        validFiles.push(file);
+      }
+    });
+    
+    if (invalidFiles.length > 0) {
+      showToast(`Some files were skipped: ${invalidFiles.join(', ')}`, 'warning');
+    }
+    
+    if (validFiles.length === 0) {
+      showToast('No valid files selected', 'error');
+      event.target.value = '';
+      return;
+    }
+    
+    console.log('Valid media files:', validFiles);
     
     if (isEditing) {
       setEditingImages(prev => {
-        const newImages = [...prev, ...mediaFiles];
+        const newImages = [...prev, ...validFiles];
         console.log('Updated editing images:', newImages);
         return newImages;
       });
     } else {
       setSelectedImages(prev => {
-        const newImages = [...prev, ...mediaFiles];
+        const newImages = [...prev, ...validFiles];
         console.log('Updated selected images:', newImages);
         return newImages;
       });
     }
+    
+    showToast(`Added ${validFiles.length} file${validFiles.length > 1 ? 's' : ''}`, 'success');
     
     // Reset the file input so the same file can be selected again
     event.target.value = '';
@@ -1028,7 +1055,7 @@ const Home = () => {
       if (!editingConcert) return;
 
       setIsUploading(true);
-      showToast('Saving changes...', 'info', 2000);
+      showToast('Processing files and saving changes...', 'info', 3000);
 
       // Combine existing images with new uploaded images
       const existingImages = editingConcert.images || [];
@@ -1043,6 +1070,8 @@ const Home = () => {
         updatedNotes = updatedNotes ? `${updatedNotes}\n\n${openersText}` : openersText;
       }
 
+      console.log('Updating concert with images:', allImages.length);
+
       // Update the concert in the database
       await updateConcert(editingConcert.id, {
         artist: editingConcert.artist,
@@ -1053,7 +1082,7 @@ const Home = () => {
         images: allImages
       });
 
-      console.log('Concert updated:', editingConcert);
+      console.log('Concert updated successfully:', editingConcert);
       showToast('Concert updated successfully!', 'success');
       setShowEditConcert(false);
       setEditingConcert(null);

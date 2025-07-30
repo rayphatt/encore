@@ -306,58 +306,85 @@ export const firebaseConcertService = {
     
     if (BYPASS_FIREBASE_STORAGE) {
       console.log('Bypassing Firebase Storage - using data URLs for development');
-      const dataUrlPromises = images.map(async (file, index) => {
-        return new Promise<string>((resolve) => {
+      
+      // Process files sequentially to avoid memory issues
+      const dataUrls: string[] = [];
+      
+      for (let index = 0; index < images.length; index++) {
+        const file = images[index];
+        console.log(`Processing file ${index}: ${file.name} (${file.size} bytes)`);
+        
+        try {
           if (file.type.startsWith('video/')) {
-            // Handle video files
-            const reader = new FileReader();
-            reader.onload = () => {
-              console.log(`Created data URL for video ${index} (${reader.result?.toString().length} bytes)`);
-              resolve(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+            // Handle video files with size limit and progress
+            if (file.size > 50 * 1024 * 1024) { // 50MB limit
+              console.warn(`Video file ${file.name} is too large (${file.size} bytes). Skipping.`);
+              continue;
+            }
+            
+            console.log(`Processing video file ${index}...`);
+            const videoUrl = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => {
+                console.log(`Created data URL for video ${index} (${reader.result?.toString().length} bytes)`);
+                resolve(reader.result as string);
+              };
+              reader.onerror = () => reject(new Error(`Failed to read video file: ${file.name}`));
+              reader.readAsDataURL(file);
+            });
+            dataUrls.push(videoUrl);
+            console.log(`Completed video ${index}`);
+            
           } else {
             // Handle image files with compression
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const img = new Image();
-            
-            img.onload = () => {
-              // Calculate new dimensions (max 800px width/height)
-              const maxSize = 800;
-              let { width, height } = img;
+            console.log(`Processing image file ${index}...`);
+            const imageUrl = await new Promise<string>((resolve, reject) => {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              const img = new Image();
               
-              if (width > height) {
-                if (width > maxSize) {
-                  height = (height * maxSize) / width;
-                  width = maxSize;
+              img.onload = () => {
+                try {
+                  const maxSize = 800;
+                  let { width, height } = img;
+                  
+                  if (width > height) {
+                    if (width > maxSize) {
+                      height = (height * maxSize) / width;
+                      width = maxSize;
+                    }
+                  } else {
+                    if (height > maxSize) {
+                      width = (width * maxSize) / height;
+                      height = maxSize;
+                    }
+                  }
+                  
+                  canvas.width = width;
+                  canvas.height = height;
+                  ctx?.drawImage(img, 0, 0, width, height);
+                  
+                  const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                  console.log(`Created compressed data URL for image ${index} (${compressedDataUrl.length} bytes)`);
+                  resolve(compressedDataUrl);
+                } catch (error) {
+                  reject(error);
                 }
-              } else {
-                if (height > maxSize) {
-                  width = (width * maxSize) / height;
-                  height = maxSize;
-                }
-              }
+              };
               
-              // Set canvas dimensions
-              canvas.width = width;
-              canvas.height = height;
-              
-              // Draw and compress image
-              ctx?.drawImage(img, 0, 0, width, height);
-              
-              // Convert to compressed data URL (quality 0.7)
-              const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-              console.log(`Created compressed data URL for image ${index} (${compressedDataUrl.length} bytes)`);
-              resolve(compressedDataUrl);
-            };
-            
-            img.src = URL.createObjectURL(file);
+              img.onerror = () => reject(new Error(`Failed to load image: ${file.name}`));
+              img.src = URL.createObjectURL(file);
+            });
+            dataUrls.push(imageUrl);
+            console.log(`Completed image ${index}`);
           }
-        });
-      });
+        } catch (error) {
+          console.error(`Error processing file ${index}:`, error);
+          // Skip this file and continue with others
+          continue;
+        }
+      }
       
-      const dataUrls = await Promise.all(dataUrlPromises);
       console.log('=== END UPLOAD MEDIA DEBUG (BYPASSED) ===');
       return dataUrls;
     }

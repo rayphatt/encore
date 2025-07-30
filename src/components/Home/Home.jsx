@@ -941,7 +941,7 @@ const Home = () => {
     <div className={styles.imagePreviewContainer}>
       {images.map((image, index) => {
         const isVideo = typeof image === 'string' 
-          ? image.startsWith('data:video/')
+          ? (image.startsWith('data:video/') || image.includes('PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8cGF0aCBkPSJNMjggMjBMMzYgMzJMMjggNDRWMjBaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K'))
           : image.type.startsWith('video/');
         
         return (
@@ -1011,7 +1011,15 @@ const Home = () => {
             type: 'video'
           };
         } else if (file.startsWith('data:image/')) {
-          // All data:image/ URLs are images, regardless of size
+          // Check if this is our video placeholder icon
+          if (file.includes('PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8cGF0aCBkPSJNMjggMjBMMzYgMzJMMjggNDRWMjBaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K')) {
+            console.log(`File ${index} detected as video placeholder`);
+            return {
+              url: file,
+              type: 'video'
+            };
+          }
+          // All other data:image/ URLs are images
           console.log(`File ${index} detected as image`);
           return {
             url: file,
@@ -2110,7 +2118,7 @@ const Home = () => {
               <div className={styles.imageModalContent}>
                 {selectedImage && (
                   (selectedImage.type && selectedImage.type.startsWith('video/')) || 
-                  (typeof selectedImage === 'string' && selectedImage.startsWith('data:video/')) ? (
+                  (typeof selectedImage === 'string' && (selectedImage.startsWith('data:video/') || selectedImage.includes('PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8cGF0aCBkPSJNMjggMjBMMzYgMzJMMjggNDRWMjBaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K'))) ? (
                     <video
                       src={typeof selectedImage === 'string' 
                         ? selectedImage 

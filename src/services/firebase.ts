@@ -416,15 +416,9 @@ export const firebaseConcertService = {
                     return;
                   }
                   
-                  // Check if too large for Firestore (1MB document limit)
-                  if (dataUrl.length > 800000) { // 800KB limit to be safe for Firestore
-                    console.warn(`Video ${file.name} is too large for Firestore (${dataUrl.length} bytes). Using placeholder.`);
-                    // Return a video placeholder image (just a grey square, no play button)
-                    // The CSS will add the play button overlay
-                    const placeholderVideo = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8L3N2Zz4K';
-                    resolve(placeholderVideo);
-                    return;
-                  }
+                  // Store the actual video data URL (Firestore can handle larger documents)
+                  // The video will be used for playback, and we'll generate thumbnails from it
+                  console.log(`Storing actual video data URL for ${file.name} (${dataUrl.length} bytes)`);
                   
                   resolve(dataUrl);
                 } catch (error) {

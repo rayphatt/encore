@@ -167,45 +167,30 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                 >
                   {isItemVideo ? (
                     <div className={styles.gridVideoContainer}>
-                      {/* For SVG placeholders, render as image instead of video */}
-                      {itemUrl && itemUrl.startsWith('data:image/svg+xml') ? (
-                        <img
-                          src={itemUrl}
-                          className={styles.gridVideo}
-                          alt="Video placeholder"
-                          style={{
-                            borderRadius: '8px',
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover'
-                          }}
-                        />
-                      ) : (
-                        <video
-                          ref={(el) => {
-                            videoRefs.current[index] = el;
-                          }}
-                          src={itemUrl}
-                          className={styles.gridVideo}
-                          muted
-                          preload="metadata"
-                          playsInline
-                          poster={undefined}
-                          onEnded={() => handleVideoEnded(index)}
-                          onPause={() => handleVideoPause(index)}
-                          onError={(e) => {
-                            console.error('Video failed to load:', itemUrl);
-                            // Don't replace the element, just log the error
-                            // The poster attribute will show the thumbnail
-                          }}
-                          style={{
-                            borderRadius: '8px',
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover'
-                          }}
-                        />
-                      )}
+                      <video
+                        ref={(el) => {
+                          videoRefs.current[index] = el;
+                        }}
+                        src={itemUrl}
+                        className={styles.gridVideo}
+                        muted
+                        preload="metadata"
+                        playsInline
+                        poster={undefined}
+                        onEnded={() => handleVideoEnded(index)}
+                        onPause={() => handleVideoPause(index)}
+                        onError={(e) => {
+                          console.error('Video failed to load:', itemUrl);
+                          // Don't replace the element, just log the error
+                          // The poster attribute will show the thumbnail
+                        }}
+                        style={{
+                          borderRadius: '8px',
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
                       <button
                         className={`${styles.gridPlayButton} ${isVideoPlaying ? styles.playing : ''}`}
                         onClick={(e) => handleVideoPlay(e, index)}

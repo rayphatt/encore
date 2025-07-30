@@ -940,8 +940,8 @@ const Home = () => {
   const renderExistingImages = (images) => (
     <div className={styles.imagePreviewContainer}>
       {images.map((image, index) => {
-        // Debug: Check for video placeholder (SVG grey square, no play button)
-        const isVideoPlaceholder = typeof image === 'string' && image.includes('PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8L3N2Zz4K');
+        // No longer using video placeholders - all videos are actual video data URLs
+        const isVideoPlaceholder = false;
         
         const isVideo = typeof image === 'string' 
           ? (image.startsWith('data:video/') || isVideoPlaceholder)
@@ -956,25 +956,16 @@ const Home = () => {
           <div key={index} className={styles.imagePreview}>
             {isVideo ? (
               <div className={styles.videoPreview}>
-                {/* For SVG placeholders, render as image instead of video */}
-                {typeof image === 'string' && image.startsWith('data:image/svg+xml') ? (
-                  <img 
-                    src={image}
-                    className={styles.previewImage}
-                    alt="Video placeholder"
-                  />
-                ) : (
-                  <video 
-                    src={typeof image === 'string' 
-                      ? (image.startsWith('data:image/') ? undefined : image) // undefined src for legacy JPEG "videos"
-                      : URL.createObjectURL(image)} 
-                    className={styles.previewImage}
-                    muted
-                    preload="metadata"
-                    playsInline
-                    poster={typeof image === 'string' && image.startsWith('data:image/') ? image : undefined} // Use as poster only if it's an image (legacy video thumbnail)
-                  />
-                )}
+                <video 
+                  src={typeof image === 'string' 
+                    ? (image.startsWith('data:image/') ? undefined : image) // undefined src for legacy JPEG "videos"
+                    : URL.createObjectURL(image)} 
+                  className={styles.previewImage}
+                  muted
+                  preload="metadata"
+                  playsInline
+                  poster={typeof image === 'string' && image.startsWith('data:image/') ? image : undefined} // Use as poster only if it's an image (legacy video thumbnail)
+                />
                 <div className={styles.videoPlayButton}>▶</div>
               </div>
             ) : (
@@ -1023,8 +1014,8 @@ const Home = () => {
         // It's a URL string (existing image or video)
         console.log(`File ${index} is string:`, file.substring(0, 100) + '...');
         
-        // Debug: Check for video placeholder (SVG grey square, no play button)
-        const isVideoPlaceholder = file.includes('PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8L3N2Zz4K');
+        // No longer using video placeholders - all videos are actual video data URLs
+        const isVideoPlaceholder = false;
         console.log(`File ${index} is video placeholder:`, isVideoPlaceholder);
         
         if (file.startsWith('data:video/')) {

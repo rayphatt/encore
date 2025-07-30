@@ -260,14 +260,6 @@ export const firebaseConcertService = {
     }
     
     console.log('Final updateData:', updateData);
-    const dataSize = JSON.stringify(updateData).length;
-    console.log('Total data size:', dataSize, 'bytes');
-    
-    // Firestore has a 1MB document size limit
-    if (dataSize > 900000) { // Leave some buffer
-      console.error('Data too large for Firestore:', dataSize, 'bytes');
-      throw new Error('Uploaded files are too large. Please try with fewer or smaller files.');
-    }
     
     try {
       await updateDoc(doc(db, 'concerts', concertId), updateData);
@@ -317,121 +309,22 @@ export const firebaseConcertService = {
     console.log('userId:', userId);
     console.log('media files:', images);
     
-    // TEMPORARY: Bypass Firebase Storage for development
-    const BYPASS_FIREBASE_STORAGE = true;
-    
-    if (BYPASS_FIREBASE_STORAGE) {
-      console.log('Bypassing Firebase Storage - using data URLs for development');
-      
-      // Process files with better error handling and timeouts
-      const dataUrls: string[] = [];
-      
-      for (let index = 0; index < images.length; index++) {
-        const file = images[index];
-        console.log(`Processing file ${index}: ${file.name} (${file.size} bytes)`);
-        
-        try {
-          if (file.type.startsWith('video/')) {
-            // Handle video files with size limit
-            if (file.size > 10 * 1024 * 1024) { // Further reduced to 10MB for better performance
-              console.warn(`Video file ${file.name} is too large (${file.size} bytes). Skipping.`);
-              continue;
-            }
-            
-            console.log(`Processing video file ${index}...`);
-            const videoUrl = await new Promise<string>((resolve, reject) => {
-              const timeout = setTimeout(() => {
-                reject(new Error(`Video file ${file.name} took too long to process`));
-              }, 15000); // 15 second timeout
-              
-              const reader = new FileReader();
-              reader.onload = () => {
-                clearTimeout(timeout);
-                console.log(`Created data URL for video ${index} (${reader.result?.toString().length} bytes)`);
-                resolve(reader.result as string);
-              };
-              reader.onerror = () => {
-                clearTimeout(timeout);
-                reject(new Error(`Failed to read video file: ${file.name}`));
-              };
-              reader.readAsDataURL(file);
-            });
-            dataUrls.push(videoUrl);
-            console.log(`Completed video ${index}`);
-            
-          } else {
-            // Handle image files with compression
-            console.log(`Processing image file ${index}...`);
-            const imageUrl = await new Promise<string>((resolve, reject) => {
-              const timeout = setTimeout(() => {
-                reject(new Error(`Image file ${file.name} took too long to process`));
-              }, 10000); // 10 second timeout
-              
-              const canvas = document.createElement('canvas');
-              const ctx = canvas.getContext('2d');
-              const img = new Image();
-              
-              img.onload = () => {
-                try {
-                  clearTimeout(timeout);
-                  const maxSize = 800;
-                  let { width, height } = img;
-                  
-                  if (width > height) {
-                    if (width > maxSize) {
-                      height = (height * maxSize) / width;
-                      width = maxSize;
-                    }
-                  } else {
-                    if (height > maxSize) {
-                      width = (width * maxSize) / height;
-                      height = maxSize;
-                    }
-                  }
-                  
-                  canvas.width = width;
-                  canvas.height = height;
-                  ctx?.drawImage(img, 0, 0, width, height);
-                  
-                  const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5); // Reduced quality for smaller size
-                  console.log(`Created compressed data URL for image ${index} (${compressedDataUrl.length} bytes)`);
-                  resolve(compressedDataUrl);
-                } catch (error) {
-                  clearTimeout(timeout);
-                  reject(error);
-                }
-              };
-              
-              img.onerror = () => {
-                clearTimeout(timeout);
-                reject(new Error(`Failed to load image: ${file.name}`));
-              };
-              
-              img.src = URL.createObjectURL(file);
-            });
-            dataUrls.push(imageUrl);
-            console.log(`Completed image ${index}`);
-          }
-        } catch (error) {
-          console.error(`Error processing file ${index}:`, error);
-          // Skip this file and continue with others
-          continue;
-        }
-      }
-      
-      console.log('=== END UPLOAD MEDIA DEBUG (BYPASSED) ===');
-      return dataUrls;
-    }
-    
-    // Firebase Storage upload (currently bypassed for development)
+    // Use Firebase Storage for production
     const uploadPromises = images.map(async (image, index) => {
       try {
-        console.log(`Uploading image ${index}:`, image.name);
+        console.log(`Uploading file ${index}:`, image.name, `(${image.size} bytes)`);
+        
+        // Check file size limits
+        if (image.size > 10 * 1024 * 1024) { // 10MB limit
+          console.warn(`File ${image.name} is too large (${image.size} bytes). Skipping.`);
+          throw new Error(`File ${image.name} is too large. Maximum size is 10MB.`);
+        }
+        
         const timestamp = Date.now();
         const fileName = `concerts/${userId}/${timestamp}_${index}_${image.name}`;
         const imageRef = ref(storage, fileName);
         
-        console.log('Attempting to upload to Firebase Storage...');
+        console.log('Uploading to Firebase Storage:', fileName);
         await uploadBytes(imageRef, image);
         console.log('Upload successful, getting download URL...');
         const downloadURL = await getDownloadURL(imageRef);
@@ -439,31 +332,13 @@ export const firebaseConcertService = {
         
         return downloadURL;
       } catch (error) {
-        console.error('Failed to upload image:', error);
-        
-        // TEMPORARY: For development, create a placeholder URL
-        // In production, you would want to handle this differently
+        console.error('Failed to upload file:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown upload error';
-        console.log('Error message:', errorMessage);
-        
-        if (errorMessage.includes('CORS') || errorMessage.includes('blocked') || errorMessage.includes('ERR_FAILED')) {
-          console.warn('CORS issue detected - using data URL for development');
-          // Create a data URL from the file for local preview
-          return new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-              console.log('Created data URL for image');
-              resolve(reader.result as string);
-            };
-            reader.readAsDataURL(image);
-          });
-        }
-        
-        throw new Error(`Failed to upload image: ${errorMessage}`);
+        throw new Error(`Failed to upload ${image.name}: ${errorMessage}`);
       }
     });
     
-    console.log('=== END UPLOAD IMAGES DEBUG ===');
+    console.log('=== END UPLOAD MEDIA DEBUG ===');
     return Promise.all(uploadPromises);
   }
 }; 

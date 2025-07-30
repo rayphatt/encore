@@ -389,8 +389,8 @@ export const firebaseConcertService = {
         
         try {
           if (file.type.startsWith('video/')) {
-            // Handle video files with aggressive compression
-            if (file.size > 10 * 1024 * 1024) { // Increased to 10MB since we're compressing
+            // Handle video files - use original video as data URL
+            if (file.size > 25 * 1024 * 1024) { // 25MB limit for videos
               console.warn(`Video file ${file.name} is too large (${file.size} bytes). Skipping.`);
               continue;
             }
@@ -401,69 +401,34 @@ export const firebaseConcertService = {
                 reject(new Error(`Video file ${file.name} took too long to process`));
               }, 15000); // 15 second timeout
               
-              // Create a video element to compress the video
-              const video = document.createElement('video');
-              video.muted = true;
-              video.playsInline = true;
-              video.preload = 'metadata';
+              const reader = new FileReader();
               
-              video.onloadedmetadata = () => {
+              reader.onload = () => {
                 try {
                   clearTimeout(timeout);
+                  const dataUrl = reader.result as string;
+                  console.log(`Created video data URL for video ${index} (${dataUrl.length} bytes)`);
                   
-                  // Create canvas for video compression
-                  const canvas = document.createElement('canvas');
-                  const ctx = canvas.getContext('2d');
-                  
-                  // Set canvas size for compression (reduce quality)
-                  const maxWidth = 480; // Reduced from original
-                  const maxHeight = 270; // Reduced from original
-                  
-                  let { videoWidth, videoHeight } = video;
-                  
-                  // Calculate new dimensions maintaining aspect ratio
-                  if (videoWidth > videoHeight) {
-                    if (videoWidth > maxWidth) {
-                      videoHeight = (videoHeight * maxWidth) / videoWidth;
-                      videoWidth = maxWidth;
-                    }
-                  } else {
-                    if (videoHeight > maxHeight) {
-                      videoWidth = (videoWidth * maxHeight) / videoHeight;
-                      videoHeight = maxHeight;
-                    }
-                  }
-                  
-                  canvas.width = videoWidth;
-                  canvas.height = videoHeight;
-                  
-                  // Draw video frame to canvas (this will compress it)
-                  ctx?.drawImage(video, 0, 0, videoWidth, videoHeight);
-                  
-                  // Convert to data URL with compression
-                  const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.3); // Very low quality for size
-                  console.log(`Created compressed video data URL for video ${index} (${compressedDataUrl.length} bytes)`);
-                  
-                  // Check if still too large
-                  if (compressedDataUrl.length > 800000) { // 800KB limit
-                    console.warn(`Compressed video ${file.name} is still too large (${compressedDataUrl.length} bytes). Skipping.`);
-                    reject(new Error(`Video ${file.name} is too large even after compression. Please try a shorter video.`));
+                  // Check if too large
+                  if (dataUrl.length > 5000000) { // 5MB limit for video data URLs
+                    console.warn(`Video ${file.name} is too large (${dataUrl.length} bytes). Skipping.`);
+                    reject(new Error(`Video ${file.name} is too large. Please try a shorter video.`));
                     return;
                   }
                   
-                  resolve(compressedDataUrl);
+                  resolve(dataUrl);
                 } catch (error) {
                   clearTimeout(timeout);
                   reject(error);
                 }
               };
               
-              video.onerror = () => {
+              reader.onerror = () => {
                 clearTimeout(timeout);
-                reject(new Error(`Failed to load video: ${file.name}`));
+                reject(new Error(`Failed to read video: ${file.name}`));
               };
               
-              video.src = URL.createObjectURL(file);
+              reader.readAsDataURL(file);
             });
             dataUrls.push(videoUrl);
             console.log(`Completed video ${index}`);

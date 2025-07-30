@@ -989,14 +989,10 @@ const Home = () => {
             type: 'video'
           };
         } else if (file.startsWith('data:image/')) {
-          // Check if this might be a video thumbnail (JPEG from old video compression)
-          // Video thumbnails from the old compression tend to be larger and have specific characteristics
-          const isLikelyVideoThumbnail = file.length > 80000; // Large JPEG files are likely video thumbnails
-          
-          console.log(`File ${index} detected as image, size: ${file.length}, likely video thumbnail: ${isLikelyVideoThumbnail}`);
+          console.log(`File ${index} detected as image, size: ${file.length}`);
           return {
             url: file,
-            type: isLikelyVideoThumbnail ? 'video' : 'image'
+            type: 'image'
           };
         } else {
           // For other URL types, try to detect by file extension or content

@@ -945,9 +945,17 @@ const Home = () => {
         // REMOVED: Large JPEGs are NOT video thumbnails - they are just large photos
         const isVideoThumbnail = false; // Disabled incorrect detection
         
+        // DEBUG: Log the actual image content to understand what we're dealing with
+        if (typeof image === 'string') {
+          console.log(`Image ${index} starts with:`, image.substring(0, 50));
+          console.log(`Image ${index} contains 'data:image/jpeg':`, image.includes('data:image/jpeg'));
+          console.log(`Image ${index} contains 'data:video/':`, image.includes('data:video/'));
+        }
+        
+        // STRICT DETECTION: Only data:video/ URLs are videos, everything else is an image
         const isVideo = typeof image === 'string' 
-          ? (image.startsWith('data:video/') || image.startsWith('https://firebasestorage.googleapis.com/') || isVideoPlaceholder || isVideoThumbnail)
-          : image.type.startsWith('video/');
+          ? (image.startsWith('data:video/') || image.startsWith('https://firebasestorage.googleapis.com/') || isVideoPlaceholder)
+          : (image.type && image.type.startsWith('video/'));
         
         console.log(`=== RENDER EXISTING IMAGES DEBUG ===`);
         console.log(`Image ${index}:`, typeof image === 'string' ? image.substring(0, 100) + '...' : image);
@@ -1037,8 +1045,14 @@ const Home = () => {
         // Check if this is a video thumbnail (JPEG that represents a video)
         // REMOVED: Large JPEGs are NOT video thumbnails - they are just large photos
         const isVideoThumbnail = false; // Disabled incorrect detection
+        
+        // DEBUG: Log the actual file content to understand what we're dealing with
+        console.log(`File ${index} starts with:`, file.substring(0, 50));
+        console.log(`File ${index} contains 'data:image/jpeg':`, file.includes('data:image/jpeg'));
+        console.log(`File ${index} contains 'data:video/':`, file.includes('data:video/'));
         console.log(`File ${index} is video placeholder:`, isVideoPlaceholder);
         
+        // STRICT DETECTION: Only data:video/ URLs are videos, everything else is an image
         if (file.startsWith('data:video/') || file.startsWith('https://firebasestorage.googleapis.com/')) {
           console.log(`File ${index} detected as video (data:video/ or Firebase Storage)`);
           return {
@@ -1046,7 +1060,7 @@ const Home = () => {
             type: 'video'
           };
         } else if (file.startsWith('data:image/')) {
-          // Check if this is our video placeholder (small MP4)
+          // Check if this is our video placeholder (SVG with placeholder text)
           if (isVideoPlaceholder) {
             console.log(`File ${index} detected as video placeholder`);
             return {
@@ -1054,17 +1068,8 @@ const Home = () => {
               type: 'video'
             };
           }
-          // Check if this is a video thumbnail
-          if (isVideoThumbnail) {
-            console.log(`File ${index} detected as video thumbnail`);
-            return {
-              url: file,
-              type: 'video',
-              isThumbnail: true
-            };
-          }
-          // All other data:image/ URLs are images
-          console.log(`File ${index} detected as image`);
+          // ALL data:image/ URLs are images (including JPEG, PNG, etc.)
+          console.log(`File ${index} detected as image (data:image/)`);
           return {
             url: file,
             type: 'image'

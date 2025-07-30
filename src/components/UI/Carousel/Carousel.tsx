@@ -176,17 +176,13 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                         muted
                         preload="metadata"
                         playsInline
+                        poster={itemUrl} // Use the same URL as poster for thumbnail
                         onEnded={() => handleVideoEnded(index)}
                         onPause={() => handleVideoPause(index)}
                         onError={(e) => {
-                          console.error('Video failed to load, treating as image:', itemUrl);
-                          // If video fails to load, treat it as an image
-                          const videoElement = e.target as HTMLVideoElement;
-                          const imgElement = document.createElement('img');
-                          imgElement.src = itemUrl || '';
-                          imgElement.style.cssText = videoElement.style.cssText;
-                          imgElement.className = videoElement.className;
-                          videoElement.parentNode?.replaceChild(imgElement, videoElement);
+                          console.error('Video failed to load:', itemUrl);
+                          // Don't replace the element, just log the error
+                          // The poster attribute will show the thumbnail
                         }}
                         style={{
                           borderRadius: '8px',

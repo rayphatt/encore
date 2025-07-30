@@ -125,6 +125,22 @@ Database update successful
 4. **✅ No "Data too large for Firestore" errors** - Upload completed successfully
 5. **✅ Clear user feedback for upload status** - "Concert updated successfully"
 
+## 🚨 **NEW ISSUE DISCOVERED**
+
+### Problem: Video Placeholder Not Loading
+**Status**: 🔴 **CRITICAL** - Videos show blank with play button after refresh
+
+**Error from Logs:**
+```
+Video failed to load: data:video/mp4;base64,AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==
+```
+
+**Root Cause**: The video placeholder data URL is invalid/corrupted and cannot be played by the browser.
+
+**Solution Applied**: Changed to use an SVG image placeholder that looks like a video thumbnail instead of an invalid MP4 file.
+
+**User Impact**: Videos appear as blank boxes with play buttons that don't work.
+
 ---
 
 **Last Updated**: July 30, 2025

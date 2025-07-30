@@ -941,7 +941,7 @@ const Home = () => {
     <div className={styles.imagePreviewContainer}>
       {images.map((image, index) => {
         // Check for video placeholders
-        const isVideoPlaceholder = typeof image === 'string' && image.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==');
+        const isVideoPlaceholder = typeof image === 'string' && (image.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==') || image.includes('VmlkZW8gUGxhY2Vob2xkZXI='));
         
         const isVideo = typeof image === 'string' 
           ? (image.startsWith('data:video/') || isVideoPlaceholder)
@@ -956,17 +956,32 @@ const Home = () => {
           <div key={index} className={styles.imagePreview}>
             {isVideo ? (
               <div className={styles.videoPreview}>
-                <video 
-                  src={typeof image === 'string' 
-                    ? (image.startsWith('data:image/') ? undefined : image) // undefined src for legacy JPEG "videos"
-                    : URL.createObjectURL(image)} 
-                  className={styles.previewImage}
-                  muted
-                  preload="metadata"
-                  playsInline
-                  poster={typeof image === 'string' && image.startsWith('data:image/') ? image : undefined} // Use as poster only if it's an image (legacy video thumbnail)
-                />
-                <div className={styles.videoPlayButton}>▶</div>
+                {isVideoPlaceholder ? (
+                  // For video placeholders, show as image with play button overlay
+                  <div className={styles.videoPreview}>
+                    <img 
+                      src={image} 
+                      alt="Video placeholder" 
+                      className={styles.previewImage}
+                    />
+                    <div className={styles.videoPlayButton}>▶</div>
+                  </div>
+                ) : (
+                  // For real videos, show video element
+                  <div className={styles.videoPreview}>
+                    <video 
+                      src={typeof image === 'string' 
+                        ? (image.startsWith('data:image/') ? undefined : image) // undefined src for legacy JPEG "videos"
+                        : URL.createObjectURL(image)} 
+                      className={styles.previewImage}
+                      muted
+                      preload="metadata"
+                      playsInline
+                      poster={typeof image === 'string' && image.startsWith('data:image/') ? image : undefined} // Use as poster only if it's an image (legacy video thumbnail)
+                    />
+                    <div className={styles.videoPlayButton}>▶</div>
+                  </div>
+                )}
               </div>
             ) : (
               <img 
@@ -1015,7 +1030,7 @@ const Home = () => {
         console.log(`File ${index} is string:`, file.substring(0, 100) + '...');
         
         // Check for video placeholders
-        const isVideoPlaceholder = file.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==');
+        const isVideoPlaceholder = file.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==') || file.includes('VmlkZW8gUGxhY2Vob2xkZXI=');
         console.log(`File ${index} is video placeholder:`, isVideoPlaceholder);
         
         if (file.startsWith('data:video/')) {
@@ -2132,7 +2147,7 @@ const Home = () => {
               <div className={styles.imageModalContent}>
                 {selectedImage && (
                   (selectedImage.type && selectedImage.type.startsWith('video/')) || 
-                  (typeof selectedImage === 'string' && (selectedImage.startsWith('data:video/') || selectedImage.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg=='))) ? (
+                  (typeof selectedImage === 'string' && (selectedImage.startsWith('data:video/') || selectedImage.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==') || selectedImage.includes('VmlkZW8gUGxhY2Vob2xkZXI='))) ? (
                     <video
                       src={typeof selectedImage === 'string' 
                         ? selectedImage 

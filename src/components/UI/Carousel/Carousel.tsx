@@ -239,20 +239,6 @@ const Carousel: React.FC<CarouselProps> = ({ items, onItemClick, className }) =>
                           imgElement.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjZjBmMGYwIi8+Cjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Q29ycnVwdGVkPC90ZXh0Pgo8L3N2Zz4K';
                         }}
                       />
-                      {/* Show play button for images that might be video thumbnails (large images) */}
-                      {typeof item.url === 'string' && item.url.length > 50000 && (
-                        <button
-                          className={styles.gridPlayButton}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            // Handle as video thumbnail click
-                            handleItemClick(item, index);
-                          }}
-                        >
-                          ▶
-                        </button>
-                      )}
                     </div>
                   )}
                 </div>

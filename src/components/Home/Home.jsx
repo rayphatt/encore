@@ -990,11 +990,13 @@ const Home = () => {
           };
         } else if (file.startsWith('data:image/')) {
           // Check if this might be a video thumbnail (JPEG from old video compression)
-          // For now, treat all JPEG images as images, but we'll handle video playback in the modal
-          console.log(`File ${index} detected as image, size: ${file.length}`);
+          // Large JPEG files (>50KB) are likely video thumbnails
+          const isLikelyVideoThumbnail = file.length > 50000;
+          
+          console.log(`File ${index} detected as image, size: ${file.length}, likely video thumbnail: ${isLikelyVideoThumbnail}`);
           return {
             url: file,
-            type: 'image'
+            type: isLikelyVideoThumbnail ? 'video' : 'image'
           };
         } else {
           // For other URL types, try to detect by file extension or content
@@ -2100,25 +2102,12 @@ const Home = () => {
                       webkit-playsinline="true"
                     />
                   ) : (
-                    // Check if this might be a video thumbnail (large JPEG)
-                    (typeof selectedImage === 'string' && selectedImage.startsWith('data:image/') && selectedImage.length > 150000) ? (
-                      <div className={styles.videoModalContainer}>
-                        <img
-                          src={selectedImage}
-                          alt="Video thumbnail"
-                          className={styles.fullSizeImage}
-                          onError={(e) => console.error('Modal image error:', e)}
-                        />
-                        <div className={styles.modalPlayButton}>▶</div>
-                      </div>
-                    ) : (
-                      <img
-                        src={typeof selectedImage === 'string' ? selectedImage : URL.createObjectURL(selectedImage)}
-                        alt="Full size concert image"
-                        className={styles.fullSizeImage}
-                        onError={(e) => console.error('Modal image error:', e)}
-                      />
-                    )
+                    <img
+                      src={typeof selectedImage === 'string' ? selectedImage : URL.createObjectURL(selectedImage)}
+                      alt="Full size concert image"
+                      className={styles.fullSizeImage}
+                      onError={(e) => console.error('Modal image error:', e)}
+                    />
                   )
                 )}
               </div>

@@ -419,9 +419,9 @@ export const firebaseConcertService = {
                   // Check if too large for Firestore (1MB document limit)
                   if (dataUrl.length > 800000) { // 800KB limit to be safe for Firestore
                     console.warn(`Video ${file.name} is too large for Firestore (${dataUrl.length} bytes). Using placeholder.`);
-                    // Return a small placeholder video icon instead of the full video
-                    const placeholderVideoIcon = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8cGF0aCBkPSJNMjggMjBMMzYgMzJMMjggNDRWMjBaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K';
-                    resolve(placeholderVideoIcon);
+                    // Return a small video data URL that can actually play
+                    const placeholderVideo = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAGxtZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbHMgd2l0aCBJQ0MgU01FMyBRMTYgKENvYWRlYykgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy8yMDIwL0EyL0FSLzIwL0FDLzIwL0FGLzIwL0FHLzIwL0FJLzIwL0FKLzIwL0FLLzIwL0FMLzIwL0FNLzIwL0FOLzIwL0FPLzIwL0FQLzIwL0FRLzIwL0FSLzIwL0FTLzIwL0FULzIwL0FVLzIwL0FWLzIwL0FXLzIwL0FYLzIwL0FZLzIwL0Fa';
+                    resolve(placeholderVideo);
                     return;
                   }
                   

@@ -941,7 +941,7 @@ const Home = () => {
     <div className={styles.imagePreviewContainer}>
       {images.map((image, index) => {
         const isVideo = typeof image === 'string' 
-          ? (image.startsWith('data:video/') || image.includes('PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8cGF0aCBkPSJNMjggMjBMMzYgMzJMMjggNDRWMjBaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K'))
+          ? (image.startsWith('data:video/') || image.includes('AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAGxtZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbHMgd2l0aCBJQ0MgU01FMyBRMTYgKENvYWRlYykgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy8yMDIwL0EyL0FSLzIwL0FDLzIwL0FGLzIwL0FHLzIwL0FJLzIwL0FKLzIwL0FLLzIwL0FMLzIwL0FNLzIwL0FOLzIwL0FPLzIwL0FQLzIwL0FRLzIwL0FSLzIwL0FTLzIwL0FULzIwL0FVLzIwL0FWLzIwL0FXLzIwL0FYLzIwL0FZLzIwL0Fa'))
           : image.type.startsWith('video/');
         
         return (
@@ -1011,8 +1011,8 @@ const Home = () => {
             type: 'video'
           };
         } else if (file.startsWith('data:image/')) {
-          // Check if this is our video placeholder icon
-          if (file.includes('PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8cGF0aCBkPSJNMjggMjBMMzYgMzJMMjggNDRWMjBaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K')) {
+          // Check if this is our video placeholder (small MP4)
+          if (file.includes('AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAGxtZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbHMgd2l0aCBJQ0MgU01FMyBRMTYgKENvYWRlYykgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy8yMDIwL0EyL0FSLzIwL0FDLzIwL0FGLzIwL0FHLzIwL0FJLzIwL0FKLzIwL0FLLzIwL0FMLzIwL0FNLzIwL0FOLzIwL0FPLzIwL0FQLzIwL0FRLzIwL0FSLzIwL0FTLzIwL0FULzIwL0FVLzIwL0FWLzIwL0FXLzIwL0FYLzIwL0FZLzIwL0Fa')) {
             console.log(`File ${index} detected as video placeholder`);
             return {
               url: file,
@@ -2118,7 +2118,7 @@ const Home = () => {
               <div className={styles.imageModalContent}>
                 {selectedImage && (
                   (selectedImage.type && selectedImage.type.startsWith('video/')) || 
-                  (typeof selectedImage === 'string' && (selectedImage.startsWith('data:video/') || selectedImage.includes('PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8cGF0aCBkPSJNMjggMjBMMzYgMzJMMjggNDRWMjBaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K'))) ? (
+                  (typeof selectedImage === 'string' && (selectedImage.startsWith('data:video/') || selectedImage.includes('AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAGxtZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbHMgd2l0aCBJQ0MgU01FMyBRMTYgKENvYWRlYykgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy8yMDIwL0EyL0FSLzIwL0FDLzIwL0FGLzIwL0FHLzIwL0FJLzIwL0FKLzIwL0FLLzIwL0FMLzIwL0FNLzIwL0FOLzIwL0FPLzIwL0FQLzIwL0FRLzIwL0FSLzIwL0FTLzIwL0FULzIwL0FVLzIwL0FWLzIwL0FXLzIwL0FYLzIwL0FZLzIwL0Fa'))) ? (
                     <video
                       src={typeof selectedImage === 'string' 
                         ? selectedImage 

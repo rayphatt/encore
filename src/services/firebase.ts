@@ -307,7 +307,7 @@ export const firebaseConcertService = {
     if (BYPASS_FIREBASE_STORAGE) {
       console.log('Bypassing Firebase Storage - using data URLs for development');
       
-      // Process files sequentially to avoid memory issues
+      // Process files with better error handling and timeouts
       const dataUrls: string[] = [];
       
       for (let index = 0; index < images.length; index++) {
@@ -316,20 +316,28 @@ export const firebaseConcertService = {
         
         try {
           if (file.type.startsWith('video/')) {
-            // Handle video files with size limit and progress
-            if (file.size > 50 * 1024 * 1024) { // 50MB limit
+            // Handle video files with size limit
+            if (file.size > 25 * 1024 * 1024) { // Reduced to 25MB for better performance
               console.warn(`Video file ${file.name} is too large (${file.size} bytes). Skipping.`);
               continue;
             }
             
             console.log(`Processing video file ${index}...`);
             const videoUrl = await new Promise<string>((resolve, reject) => {
+              const timeout = setTimeout(() => {
+                reject(new Error(`Video file ${file.name} took too long to process`));
+              }, 15000); // 15 second timeout
+              
               const reader = new FileReader();
               reader.onload = () => {
+                clearTimeout(timeout);
                 console.log(`Created data URL for video ${index} (${reader.result?.toString().length} bytes)`);
                 resolve(reader.result as string);
               };
-              reader.onerror = () => reject(new Error(`Failed to read video file: ${file.name}`));
+              reader.onerror = () => {
+                clearTimeout(timeout);
+                reject(new Error(`Failed to read video file: ${file.name}`));
+              };
               reader.readAsDataURL(file);
             });
             dataUrls.push(videoUrl);
@@ -339,12 +347,17 @@ export const firebaseConcertService = {
             // Handle image files with compression
             console.log(`Processing image file ${index}...`);
             const imageUrl = await new Promise<string>((resolve, reject) => {
+              const timeout = setTimeout(() => {
+                reject(new Error(`Image file ${file.name} took too long to process`));
+              }, 10000); // 10 second timeout
+              
               const canvas = document.createElement('canvas');
               const ctx = canvas.getContext('2d');
               const img = new Image();
               
               img.onload = () => {
                 try {
+                  clearTimeout(timeout);
                   const maxSize = 800;
                   let { width, height } = img;
                   
@@ -368,11 +381,16 @@ export const firebaseConcertService = {
                   console.log(`Created compressed data URL for image ${index} (${compressedDataUrl.length} bytes)`);
                   resolve(compressedDataUrl);
                 } catch (error) {
+                  clearTimeout(timeout);
                   reject(error);
                 }
               };
               
-              img.onerror = () => reject(new Error(`Failed to load image: ${file.name}`));
+              img.onerror = () => {
+                clearTimeout(timeout);
+                reject(new Error(`Failed to load image: ${file.name}`));
+              };
+              
               img.src = URL.createObjectURL(file);
             });
             dataUrls.push(imageUrl);

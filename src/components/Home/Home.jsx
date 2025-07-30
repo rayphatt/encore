@@ -1054,8 +1054,14 @@ const Home = () => {
     try {
       if (!editingConcert) return;
 
+      // Prevent multiple submissions
+      if (isUploading) {
+        console.log('Upload already in progress, ignoring submit');
+        return;
+      }
+
       setIsUploading(true);
-      showToast('Processing files and saving changes...', 'info', 3000);
+      showToast('Processing files and saving changes...', 'info', 5000);
 
       // Combine existing images with new uploaded images
       const existingImages = editingConcert.images || [];
@@ -1072,8 +1078,8 @@ const Home = () => {
 
       console.log('Updating concert with images:', allImages.length);
 
-      // Update the concert in the database
-      await updateConcert(editingConcert.id, {
+      // Update the concert in the database with timeout
+      const updatePromise = updateConcert(editingConcert.id, {
         artist: editingConcert.artist,
         venue: editingConcert.venue,
         date: editingConcert.date,
@@ -1081,6 +1087,13 @@ const Home = () => {
         rating: editingConcert.rating,
         images: allImages
       });
+
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Update timed out')), 60000); // 60 second timeout
+      });
+
+      await Promise.race([updatePromise, timeoutPromise]);
 
       console.log('Concert updated successfully:', editingConcert);
       showToast('Concert updated successfully!', 'success');

@@ -260,7 +260,23 @@ export const firebaseConcertService = {
     }
     
     console.log('Final updateData:', updateData);
-    await updateDoc(doc(db, 'concerts', concertId), updateData);
+    const dataSize = JSON.stringify(updateData).length;
+    console.log('Total data size:', dataSize, 'bytes');
+    
+    // Firestore has a 1MB document size limit
+    if (dataSize > 900000) { // Leave some buffer
+      console.error('Data too large for Firestore:', dataSize, 'bytes');
+      throw new Error('Uploaded files are too large. Please try with fewer or smaller files.');
+    }
+    
+    try {
+      await updateDoc(doc(db, 'concerts', concertId), updateData);
+      console.log('Database update successful');
+    } catch (error) {
+      console.error('Database update failed:', error);
+      throw new Error(`Database update failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+    
     console.log('=== END UPDATE CONCERT DEBUG ===');
   },
 
@@ -317,7 +333,7 @@ export const firebaseConcertService = {
         try {
           if (file.type.startsWith('video/')) {
             // Handle video files with size limit
-            if (file.size > 25 * 1024 * 1024) { // Reduced to 25MB for better performance
+            if (file.size > 10 * 1024 * 1024) { // Further reduced to 10MB for better performance
               console.warn(`Video file ${file.name} is too large (${file.size} bytes). Skipping.`);
               continue;
             }
@@ -377,7 +393,7 @@ export const firebaseConcertService = {
                   canvas.height = height;
                   ctx?.drawImage(img, 0, 0, width, height);
                   
-                  const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                  const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5); // Reduced quality for smaller size
                   console.log(`Created compressed data URL for image ${index} (${compressedDataUrl.length} bytes)`);
                   resolve(compressedDataUrl);
                 } catch (error) {

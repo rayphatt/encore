@@ -389,6 +389,7 @@ export const firebaseConcertService = {
       return dataUrls;
     }
     
+    // Firebase Storage upload (currently bypassed for development)
     const uploadPromises = images.map(async (image, index) => {
       try {
         console.log(`Uploading image ${index}:`, image.name);

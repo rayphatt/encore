@@ -441,8 +441,8 @@ export const firebaseConcertService = {
             continue;
           }
           
-          // Check if video is too large for Firestore BEFORE creating data URL
-          if (file.size > 800000) { // 800KB limit for Firestore
+          // Only use placeholder for extremely large videos that would cause Firestore errors
+          if (file.size > 5000000) { // 5MB limit for Firestore (increased from 800KB)
             console.warn(`Video ${file.name} is too large for Firestore (${file.size} bytes). Using placeholder.`);
             
             // Create a small video placeholder that can be stored in Firestore

@@ -940,8 +940,8 @@ const Home = () => {
   const renderExistingImages = (images) => (
     <div className={styles.imagePreviewContainer}>
       {images.map((image, index) => {
-        // Debug: Check for video placeholder
-        const isVideoPlaceholder = typeof image === 'string' && image.includes('AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAGxtZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbHMgd2l0aCBJQ0MgU01FMyBRMTYgKENvYWRlYykgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy8yMDIwL0EyL0FSLzIwL0FDLzIwL0FGLzIwL0FHLzIwL0FJLzIwL0FKLzIwL0FLLzIwL0FMLzIwL0FNLzIwL0FOLzIwL0FPLzIwL0FQLzIwL0FRLzIwL0FSLzIwL0FTLzIwL0FULzIwL0FVLzIwL0FWLzIwL0FXLzIwL0FYLzIwL0FZLzIwL0Fa');
+        // Debug: Check for video placeholder (SVG with play button)
+        const isVideoPlaceholder = typeof image === 'string' && image.includes('PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8cGF0aCBkPSJNMjggMjBMMzYgMzJMMjggNDRWMjBaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K');
         
         const isVideo = typeof image === 'string' 
           ? (image.startsWith('data:video/') || isVideoPlaceholder)
@@ -1014,8 +1014,8 @@ const Home = () => {
         // It's a URL string (existing image or video)
         console.log(`File ${index} is string:`, file.substring(0, 100) + '...');
         
-        // Debug: Check for video placeholder
-        const isVideoPlaceholder = file.includes('AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAGxtZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbHMgd2l0aCBJQ0MgU01FMyBRMTYgKENvYWRlYykgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy8yMDIwL0EyL0FSLzIwL0FDLzIwL0FGLzIwL0FHLzIwL0FJLzIwL0FKLzIwL0FLLzIwL0FMLzIwL0FNLzIwL0FOLzIwL0FPLzIwL0FQLzIwL0FRLzIwL0FSLzIwL0FTLzIwL0FULzIwL0FVLzIwL0FWLzIwL0FXLzIwL0FYLzIwL0FZLzIwL0Fa');
+        // Debug: Check for video placeholder (SVG with play button)
+        const isVideoPlaceholder = file.includes('PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iOCIgZmlsbD0iIzMzMzMzMyIvPgo8cGF0aCBkPSJNMjggMjBMMzYgMzJMMjggNDRWMjBaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K');
         console.log(`File ${index} is video placeholder:`, isVideoPlaceholder);
         
         if (file.startsWith('data:video/')) {

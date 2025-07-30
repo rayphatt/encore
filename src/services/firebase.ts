@@ -369,6 +369,57 @@ export const firebaseConcertService = {
     await deleteDoc(doc(db, 'concerts', concertId));
   },
 
+  // Helper method to compress images
+  async compressImage(file: File): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error(`Image file ${file.name} took too long to process`));
+      }, 8000); // 8 second timeout
+      
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        try {
+          clearTimeout(timeout);
+          const maxSize = 600; // Reduced from 800
+          let { width, height } = img;
+          
+          if (width > height) {
+            if (width > maxSize) {
+              height = (height * maxSize) / width;
+              width = maxSize;
+            }
+          } else {
+            if (height > maxSize) {
+              width = (width * maxSize) / height;
+              height = maxSize;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.3); // Reduced quality to 0.3
+          console.log(`Created compressed data URL for image (${compressedDataUrl.length} bytes)`);
+          resolve(compressedDataUrl);
+        } catch (error) {
+          clearTimeout(timeout);
+          reject(error);
+        }
+      };
+      
+      img.onerror = () => {
+        clearTimeout(timeout);
+        reject(new Error(`Failed to load image: ${file.name}`));
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  },
+
   // Helper method to generate video thumbnail
   async generateVideoThumbnail(videoFile: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -416,177 +467,88 @@ export const firebaseConcertService = {
     });
   },
 
-  async uploadImages(userId: string, images: File[]): Promise<string[]> {
-    console.log('=== UPLOAD MEDIA DEBUG ===');
+    async uploadImages(userId: string, images: File[]): Promise<string[]> {
+    console.log('=== SOLVING STORAGE vs DISPLAY PARADOX ===');
     console.log('userId:', userId);
     console.log('media files:', images);
     
-    // TEMPORARY: Use data URLs due to CORS issues with Firebase Storage
-    const BYPASS_FIREBASE_STORAGE = true;
+    const dataUrls: string[] = [];
     
-    if (BYPASS_FIREBASE_STORAGE) {
-      console.log('Bypassing Firebase Storage due to CORS issues - using compressed data URLs');
+    for (let index = 0; index < images.length; index++) {
+      const file = images[index];
+      console.log(`Processing file ${index}: ${file.name} (${file.size} bytes)`);
       
-      const dataUrls: string[] = [];
-      
-      for (let index = 0; index < images.length; index++) {
-        const file = images[index];
-        console.log(`Processing file ${index}: ${file.name} (${file.size} bytes)`);
-        
-        try {
-                  if (file.type.startsWith('video/')) {
-          // Handle video files - check size BEFORE processing
-          if (file.size > 25 * 1024 * 1024) { // 25MB limit for videos
+      try {
+        if (file.type.startsWith('video/')) {
+          // VIDEOS: Use Firebase Storage to solve the paradox
+          console.log(`Processing video file ${index} with Firebase Storage...`);
+          
+          if (file.size > 100 * 1024 * 1024) { // 100MB limit for videos
             console.warn(`Video file ${file.name} is too large (${file.size} bytes). Skipping.`);
             continue;
           }
           
-          // Only use placeholder for extremely large videos that would cause Firestore errors
-          if (file.size > 5000000) { // 5MB limit for Firestore (increased from 800KB)
-            console.warn(`Video ${file.name} is too large for Firestore (${file.size} bytes). Using placeholder.`);
+          try {
+            // Upload to Firebase Storage
+            const videoRef = ref(storage, `videos/${userId}/${Date.now()}_${file.name}`);
+            const snapshot = await uploadBytes(videoRef, file);
+            const downloadURL = await getDownloadURL(snapshot.ref);
             
-            // Create a small video placeholder that can be stored in Firestore
-            // Using an image placeholder that looks like a video thumbnail
-            const placeholderVideo = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMzMzIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjEwMCIgcj0iNDAiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjgiLz4KPHBhdGggZD0iTTEzMCA5MGw0MCAyMC00MCAyMFY5MHoiIGZpbGw9IndoaXRlIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTgwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5WaWRlbyBQbGFjZWhvbGRlcjwvdGV4dD4KPC9zdmc+';
+            console.log(`Video uploaded to Firebase Storage: ${downloadURL}`);
+            dataUrls.push(downloadURL);
+            console.log(`Completed video ${index} with Firebase Storage`);
             
-            dataUrls.push(placeholderVideo);
-            console.log(`Completed video ${index} with placeholder`);
-            continue;
+          } catch (storageError) {
+            console.error('Firebase Storage upload failed:', storageError);
+            
+            // FALLBACK: Use data URL for small videos only
+            if (file.size <= 800000) { // 800KB limit for fallback
+              console.log(`Falling back to data URL for small video ${file.name}`);
+              const videoUrl = await new Promise<string>((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                  reject(new Error(`Video file ${file.name} took too long to process`));
+                }, 15000);
+                
+                const reader = new FileReader();
+                reader.onload = () => {
+                  clearTimeout(timeout);
+                  const dataUrl = reader.result as string;
+                  console.log(`Created fallback data URL for video ${index} (${dataUrl.length} bytes)`);
+                  resolve(dataUrl);
+                };
+                reader.onerror = () => {
+                  clearTimeout(timeout);
+                  reject(new Error(`Failed to read video: ${file.name}`));
+                };
+                reader.readAsDataURL(file);
+              });
+              dataUrls.push(videoUrl);
+              console.log(`Completed video ${index} with fallback data URL`);
+            } else {
+              // Use placeholder for large videos that can't be stored
+              console.warn(`Video ${file.name} too large for fallback (${file.size} bytes). Using placeholder.`);
+              const placeholderVideo = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMzMzIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjEwMCIgcj0iNDAiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjgiLz4KPHBhdGggZD0iTTEzMCA5MGw0MCAyMC00MCAyMFY5MHoiIGZpbGw9IndoaXRlIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTgwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5WaWRlbyBQbGFjZWhvbGRlcjwvdGV4dD4KPC9zdmc+';
+              dataUrls.push(placeholderVideo);
+              console.log(`Completed video ${index} with placeholder`);
+            }
           }
           
-          console.log(`Processing video file ${index}...`);
-          const videoUrl = await new Promise<string>((resolve, reject) => {
-            const timeout = setTimeout(() => {
-              reject(new Error(`Video file ${file.name} took too long to process`));
-            }, 15000); // 15 second timeout
-            
-            const reader = new FileReader();
-            
-            reader.onload = () => {
-              try {
-                clearTimeout(timeout);
-                const dataUrl = reader.result as string;
-                console.log(`Created video data URL for video ${index} (${dataUrl.length} bytes)`);
-                
-                // Check if too large for internal processing
-                if (dataUrl.length > 25000000) { // 25MB limit for video data URLs
-                  console.warn(`Video ${file.name} is too large (${dataUrl.length} bytes). Skipping.`);
-                  reject(new Error(`Video ${file.name} is too large. Please try a shorter video.`));
-                  return;
-                }
-                
-                // Store the actual video data URL (it's small enough since we checked file size)
-                console.log(`Storing actual video data URL for ${file.name} (${dataUrl.length} bytes)`);
-                resolve(dataUrl);
-              } catch (error) {
-                clearTimeout(timeout);
-                reject(error);
-              }
-            };
-            
-            reader.onerror = () => {
-              clearTimeout(timeout);
-              reject(new Error(`Failed to read video: ${file.name}`));
-            };
-            
-            reader.readAsDataURL(file);
-          });
-          dataUrls.push(videoUrl);
-          console.log(`Completed video ${index}`);
-          
+        } else if (file.type.startsWith('image/')) {
+          // IMAGES: Continue using compressed data URLs (works fine)
+          console.log(`Processing image file ${index}...`);
+          const compressedImage = await this.compressImage(file);
+          dataUrls.push(compressedImage);
+          console.log(`Completed image ${index}`);
         } else {
-            // Handle image files with aggressive compression
-            console.log(`Processing image file ${index}...`);
-            const imageUrl = await new Promise<string>((resolve, reject) => {
-              const timeout = setTimeout(() => {
-                reject(new Error(`Image file ${file.name} took too long to process`));
-              }, 8000); // 8 second timeout
-              
-              const canvas = document.createElement('canvas');
-              const ctx = canvas.getContext('2d');
-              const img = new Image();
-              
-              img.onload = () => {
-                try {
-                  clearTimeout(timeout);
-                  const maxSize = 600; // Reduced from 800
-                  let { width, height } = img;
-                  
-                  if (width > height) {
-                    if (width > maxSize) {
-                      height = (height * maxSize) / width;
-                      width = maxSize;
-                    }
-                  } else {
-                    if (height > maxSize) {
-                      width = (width * maxSize) / height;
-                      height = maxSize;
-                    }
-                  }
-                  
-                  canvas.width = width;
-                  canvas.height = height;
-                  ctx?.drawImage(img, 0, 0, width, height);
-                  
-                  const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.3); // Reduced quality to 0.3
-                  console.log(`Created compressed data URL for image ${index} (${compressedDataUrl.length} bytes)`);
-                  resolve(compressedDataUrl);
-                } catch (error) {
-                  clearTimeout(timeout);
-                  reject(error);
-                }
-              };
-              
-              img.onerror = () => {
-                clearTimeout(timeout);
-                reject(new Error(`Failed to load image: ${file.name}`));
-              };
-              
-              img.src = URL.createObjectURL(file);
-            });
-            dataUrls.push(imageUrl);
-            console.log(`Completed image ${index}`);
-          }
-        } catch (error) {
-          console.error(`Error processing file ${index}:`, error);
-          continue;
+          console.warn(`Unsupported file type: ${file.type}. Skipping file ${file.name}`);
         }
+      } catch (error) {
+        console.error(`Error processing file ${file.name}:`, error);
+        // Remove showToast call since it's not available in this context
       }
-      
-      console.log('=== END UPLOAD MEDIA DEBUG ===');
-      return dataUrls;
     }
     
-    // Firebase Storage upload (currently bypassed due to CORS)
-    const uploadPromises = images.map(async (image, index) => {
-      try {
-        console.log(`Uploading file ${index}:`, image.name, `(${image.size} bytes)`);
-        
-        // Check file size limits
-        if (image.size > 10 * 1024 * 1024) { // 10MB limit
-          console.warn(`File ${image.name} is too large (${image.size} bytes). Skipping.`);
-          throw new Error(`File ${image.name} is too large. Maximum size is 10MB.`);
-        }
-        
-        const timestamp = Date.now();
-        const fileName = `concerts/${userId}/${timestamp}_${index}_${image.name}`;
-        const imageRef = ref(storage, fileName);
-        
-        console.log('Uploading to Firebase Storage:', fileName);
-        await uploadBytes(imageRef, image);
-        console.log('Upload successful, getting download URL...');
-        const downloadURL = await getDownloadURL(imageRef);
-        console.log('Download URL obtained:', downloadURL);
-        
-        return downloadURL;
-      } catch (error) {
-        console.error('Failed to upload file:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Unknown upload error';
-        throw new Error(`Failed to upload ${image.name}: ${errorMessage}`);
-      }
-    });
-    
-    console.log('=== END UPLOAD MEDIA DEBUG ===');
-    return Promise.all(uploadPromises);
+    console.log('=== END UPLOAD MEDIA DEBUG (PARADOX SOLVED) ===');
+    return dataUrls;
   }
 }; 

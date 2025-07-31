@@ -961,6 +961,7 @@ const Home = () => {
         console.log(`Image ${index}:`, typeof image === 'string' ? image.substring(0, 100) + '...' : image);
         console.log(`Image ${index} is video placeholder:`, isVideoPlaceholder);
         console.log(`Image ${index} is video:`, isVideo);
+        console.log(`Image ${index} starts with https://firebasestorage.googleapis.com/:`, typeof image === 'string' && image.startsWith('https://firebasestorage.googleapis.com/'));
         
         return (
           <div key={index} className={styles.imagePreview}>
@@ -1026,19 +1027,26 @@ const Home = () => {
   const VideoThumbnail = ({ src, className }) => {
     const [thumbnailUrl, setThumbnailUrl] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [hasError, setHasError] = useState(false);
     const videoRef = useRef(null);
     const canvasRef = useRef(null);
 
     useEffect(() => {
-      if (!src) return;
+      if (!src) {
+        setIsLoading(false);
+        return;
+      }
 
       const video = videoRef.current;
       const canvas = canvasRef.current;
       
       if (!video || !canvas) return;
 
+      let timeoutId;
+
       const generateThumbnail = () => {
         try {
+          console.log('Generating thumbnail for:', src);
           const ctx = canvas.getContext('2d');
           canvas.width = 300;
           canvas.height = 200;
@@ -1048,38 +1056,90 @@ const Home = () => {
           
           // Convert to data URL
           const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          console.log('Generated thumbnail successfully');
           setThumbnailUrl(thumbnailDataUrl);
           setIsLoading(false);
         } catch (error) {
           console.error('Error generating thumbnail:', error);
+          setHasError(true);
           setIsLoading(false);
         }
       };
 
       const handleLoadedMetadata = () => {
+        console.log('Video metadata loaded, seeking to 0.1s');
         // Seek to 0.1 seconds to get a good frame
         video.currentTime = 0.1;
       };
 
       const handleSeeked = () => {
+        console.log('Video seeked, generating thumbnail');
         generateThumbnail();
       };
 
-      const handleError = () => {
-        console.error('Error loading video for thumbnail');
+      const handleError = (error) => {
+        console.error('Error loading video for thumbnail:', error);
+        setHasError(true);
         setIsLoading(false);
       };
+
+      const handleCanPlay = () => {
+        console.log('Video can play, attempting thumbnail generation');
+        // Try to generate thumbnail immediately
+        setTimeout(() => {
+          if (video.readyState >= 2) { // HAVE_CURRENT_DATA
+            generateThumbnail();
+          }
+        }, 100);
+      };
+
+      // Set timeout for thumbnail generation
+      timeoutId = setTimeout(() => {
+        console.log('Thumbnail generation timeout');
+        setHasError(true);
+        setIsLoading(false);
+      }, 5000); // 5 second timeout
 
       video.addEventListener('loadedmetadata', handleLoadedMetadata);
       video.addEventListener('seeked', handleSeeked);
       video.addEventListener('error', handleError);
+      video.addEventListener('canplay', handleCanPlay);
 
       return () => {
+        if (timeoutId) clearTimeout(timeoutId);
         video.removeEventListener('loadedmetadata', handleLoadedMetadata);
         video.removeEventListener('seeked', handleSeeked);
         video.removeEventListener('error', handleError);
+        video.removeEventListener('canplay', handleCanPlay);
       };
     }, [src]);
+
+    // If we have an error or no thumbnail, show a simple video placeholder
+    if (hasError || (!isLoading && !thumbnailUrl)) {
+      return (
+        <div className={className} style={{ 
+          width: '100%', 
+          height: '100%', 
+          backgroundColor: '#333', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          borderRadius: '8px'
+        }}>
+          <div style={{ 
+            width: '60px', 
+            height: '60px', 
+            backgroundColor: 'rgba(255,255,255,0.2)', 
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <span style={{ color: 'white', fontSize: '24px' }}>▶</span>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className={className}>
@@ -1091,7 +1151,8 @@ const Home = () => {
             backgroundColor: '#f0f0f0', 
             display: 'flex', 
             alignItems: 'center', 
-            justifyContent: 'center' 
+            justifyContent: 'center',
+            borderRadius: '8px'
           }}>
             <span style={{ color: '#666' }}>Loading...</span>
           </div>
@@ -1100,7 +1161,7 @@ const Home = () => {
           <img 
             src={thumbnailUrl} 
             alt="Video thumbnail" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
           />
         ) : (
           // Fallback to video element
@@ -1110,7 +1171,7 @@ const Home = () => {
             muted
             preload="metadata"
             playsInline
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
           />
         )}
         <video 

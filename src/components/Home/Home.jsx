@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Home.module.css';
 import Card from '../UI/Card/Card';
@@ -977,17 +977,13 @@ const Home = () => {
                     <div className={styles.videoPlayButton}>▶</div>
                   </div>
                 ) : (
-                  // For real videos, show video element
+                  // For real videos, show video element with mobile thumbnail support
                   <div className={styles.videoPreview}>
-                    <video 
+                    <VideoThumbnail 
                       src={typeof image === 'string' 
                         ? (image.startsWith('data:image/') ? undefined : image) // undefined src for legacy JPEG "videos"
                         : URL.createObjectURL(image)} 
                       className={styles.previewImage}
-                      muted
-                      preload="metadata"
-                      playsInline
-                      poster={typeof image === 'string' && image.startsWith('data:image/') ? image : undefined} // Use as poster only if it's an image (legacy video thumbnail)
                     />
                     <div className={styles.videoPlayButton}>▶</div>
                   </div>
@@ -1024,6 +1020,113 @@ const Home = () => {
     }
     setSelectedImage(image);
     setShowImageModal(true);
+  };
+
+  // Video Thumbnail Component for mobile compatibility
+  const VideoThumbnail = ({ src, className }) => {
+    const [thumbnailUrl, setThumbnailUrl] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const videoRef = useRef(null);
+    const canvasRef = useRef(null);
+
+    useEffect(() => {
+      if (!src) return;
+
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      
+      if (!video || !canvas) return;
+
+      const generateThumbnail = () => {
+        try {
+          const ctx = canvas.getContext('2d');
+          canvas.width = 300;
+          canvas.height = 200;
+          
+          // Draw the video frame to canvas
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          // Convert to data URL
+          const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          setThumbnailUrl(thumbnailDataUrl);
+          setIsLoading(false);
+        } catch (error) {
+          console.error('Error generating thumbnail:', error);
+          setIsLoading(false);
+        }
+      };
+
+      const handleLoadedMetadata = () => {
+        // Seek to 0.1 seconds to get a good frame
+        video.currentTime = 0.1;
+      };
+
+      const handleSeeked = () => {
+        generateThumbnail();
+      };
+
+      const handleError = () => {
+        console.error('Error loading video for thumbnail');
+        setIsLoading(false);
+      };
+
+      video.addEventListener('loadedmetadata', handleLoadedMetadata);
+      video.addEventListener('seeked', handleSeeked);
+      video.addEventListener('error', handleError);
+
+      return () => {
+        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        video.removeEventListener('seeked', handleSeeked);
+        video.removeEventListener('error', handleError);
+      };
+    }, [src]);
+
+    return (
+      <div className={className}>
+        {isLoading ? (
+          // Show loading placeholder
+          <div style={{ 
+            width: '100%', 
+            height: '100%', 
+            backgroundColor: '#f0f0f0', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center' 
+          }}>
+            <span style={{ color: '#666' }}>Loading...</span>
+          </div>
+        ) : thumbnailUrl ? (
+          // Show generated thumbnail
+          <img 
+            src={thumbnailUrl} 
+            alt="Video thumbnail" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          // Fallback to video element
+          <video 
+            ref={videoRef}
+            src={src}
+            muted
+            preload="metadata"
+            playsInline
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        )}
+        <video 
+          ref={videoRef}
+          src={src}
+          muted
+          preload="metadata"
+          playsInline
+          style={{ display: 'none' }}
+        />
+        <canvas 
+          ref={canvasRef}
+          style={{ display: 'none' }}
+        />
+      </div>
+    );
   };
 
   // Helper function to convert files to media items for carousel

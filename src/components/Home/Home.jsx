@@ -1023,25 +1023,136 @@ const Home = () => {
     setShowImageModal(true);
   };
 
-  // Simple Video Thumbnail Component
+  // Video Thumbnail Component with mobile support
   const VideoThumbnail = ({ src, className }) => {
+    const [thumbnailUrl, setThumbnailUrl] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const videoRef = useRef(null);
+    const canvasRef = useRef(null);
+
+    useEffect(() => {
+      if (!src) {
+        setIsLoading(false);
+        return;
+      }
+
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      
+      if (!video || !canvas) return;
+
+      const generateThumbnail = () => {
+        try {
+          console.log('Generating thumbnail for:', src);
+          const ctx = canvas.getContext('2d');
+          canvas.width = 300;
+          canvas.height = 200;
+          
+          // Draw the video frame to canvas
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          // Convert to data URL
+          const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          console.log('Generated thumbnail successfully');
+          setThumbnailUrl(thumbnailDataUrl);
+          setIsLoading(false);
+        } catch (error) {
+          console.error('Error generating thumbnail:', error);
+          setIsLoading(false);
+        }
+      };
+
+      const handleLoadedMetadata = () => {
+        console.log('Video metadata loaded, seeking to 0.1s');
+        // Seek to 0.1 seconds to get a good frame
+        video.currentTime = 0.1;
+      };
+
+      const handleSeeked = () => {
+        console.log('Video seeked, generating thumbnail');
+        generateThumbnail();
+      };
+
+      const handleError = (error) => {
+        console.error('Error loading video for thumbnail:', error);
+        setIsLoading(false);
+      };
+
+      // Set timeout for thumbnail generation
+      const timeoutId = setTimeout(() => {
+        console.log('Thumbnail generation timeout, using fallback');
+        setIsLoading(false);
+      }, 3000); // 3 second timeout
+
+      video.addEventListener('loadedmetadata', handleLoadedMetadata);
+      video.addEventListener('seeked', handleSeeked);
+      video.addEventListener('error', handleError);
+
+      return () => {
+        clearTimeout(timeoutId);
+        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        video.removeEventListener('seeked', handleSeeked);
+        video.removeEventListener('error', handleError);
+      };
+    }, [src]);
+
     return (
       <div className={className} style={{ position: 'relative' }}>
+        {isLoading ? (
+          // Show loading placeholder
+          <div style={{ 
+            width: '100%', 
+            height: '100%', 
+            backgroundColor: '#f0f0f0', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            borderRadius: '8px'
+          }}>
+            <span style={{ color: '#666', fontSize: '12px' }}>Loading...</span>
+          </div>
+        ) : thumbnailUrl ? (
+          // Show generated thumbnail
+          <img 
+            src={thumbnailUrl} 
+            alt="Video thumbnail" 
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'cover', 
+              borderRadius: '8px' 
+            }}
+          />
+        ) : (
+          // Fallback to video element
+          <video 
+            src={src}
+            muted
+            preload="metadata"
+            playsInline
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'cover', 
+              borderRadius: '8px',
+              backgroundColor: '#f0f0f0'
+            }}
+            onError={(e) => {
+              console.error('Video failed to load:', src);
+            }}
+          />
+        )}
         <video 
+          ref={videoRef}
           src={src}
           muted
           preload="metadata"
           playsInline
-          style={{ 
-            width: '100%', 
-            height: '100%', 
-            objectFit: 'cover', 
-            borderRadius: '8px',
-            backgroundColor: '#f0f0f0'
-          }}
-          onError={(e) => {
-            console.error('Video failed to load:', src);
-          }}
+          style={{ display: 'none' }}
+        />
+        <canvas 
+          ref={canvasRef}
+          style={{ display: 'none' }}
         />
       </div>
     );

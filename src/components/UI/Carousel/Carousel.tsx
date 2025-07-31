@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './Carousel.module.css';
 
-// Video Thumbnail Component for mobile compatibility
+// Simple Video Thumbnail Component
 interface VideoThumbnailProps {
   src?: string;
   className?: string;
@@ -21,166 +21,10 @@ const VideoThumbnail: React.FC<VideoThumbnailProps> = ({
   onError, 
   style 
 }) => {
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    if (!src) {
-      setIsLoading(false);
-      return;
-    }
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    
-    if (!video || !canvas) return;
-
-    let timeoutId: NodeJS.Timeout;
-
-    const generateThumbnail = () => {
-      try {
-        console.log('Carousel: Generating thumbnail for:', src);
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        
-        canvas.width = 300;
-        canvas.height = 200;
-        
-        // Draw the video frame to canvas
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        // Convert to data URL
-        const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        console.log('Carousel: Generated thumbnail successfully');
-        setThumbnailUrl(thumbnailDataUrl);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Carousel: Error generating thumbnail:', error);
-        setHasError(true);
-        setIsLoading(false);
-      }
-    };
-
-    const handleLoadedMetadata = () => {
-      console.log('Carousel: Video metadata loaded, seeking to 0.1s');
-      // Seek to 0.1 seconds to get a good frame
-      video.currentTime = 0.1;
-    };
-
-    const handleSeeked = () => {
-      console.log('Carousel: Video seeked, generating thumbnail');
-      generateThumbnail();
-    };
-
-    const handleError = (error: any) => {
-      console.error('Carousel: Error loading video for thumbnail:', error);
-      setHasError(true);
-      setIsLoading(false);
-    };
-
-    const handleCanPlay = () => {
-      console.log('Carousel: Video can play, attempting thumbnail generation');
-      // Try to generate thumbnail immediately
-      setTimeout(() => {
-        if (video.readyState >= 2) { // HAVE_CURRENT_DATA
-          generateThumbnail();
-        }
-      }, 100);
-    };
-
-    // Set timeout for thumbnail generation
-    timeoutId = setTimeout(() => {
-      console.log('Carousel: Thumbnail generation timeout');
-      setHasError(true);
-      setIsLoading(false);
-    }, 5000); // 5 second timeout
-
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
-    video.addEventListener('seeked', handleSeeked);
-    video.addEventListener('error', handleError);
-    video.addEventListener('canplay', handleCanPlay);
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      video.removeEventListener('seeked', handleSeeked);
-      video.removeEventListener('error', handleError);
-      video.removeEventListener('canplay', handleCanPlay);
-    };
-  }, [src]);
-
-  // If we have an error or no thumbnail, show a simple video placeholder
-  if (hasError || (!isLoading && !thumbnailUrl)) {
-    return (
-      <div className={className} style={{ 
-        width: '100%', 
-        height: '100%', 
-        backgroundColor: '#333', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        borderRadius: '8px',
-        ...style
-      }}>
-        <div style={{ 
-          width: '60px', 
-          height: '60px', 
-          backgroundColor: 'rgba(255,255,255,0.2)', 
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <span style={{ color: 'white', fontSize: '24px' }}>▶</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className={className} style={style}>
-      {isLoading ? (
-        // Show loading placeholder
-        <div style={{ 
-          width: '100%', 
-          height: '100%', 
-          backgroundColor: '#f0f0f0', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          borderRadius: '8px'
-        }}>
-          <span style={{ color: '#666' }}>Loading...</span>
-        </div>
-      ) : thumbnailUrl ? (
-        // Show generated thumbnail
-        <img 
-          src={thumbnailUrl} 
-          alt="Video thumbnail" 
-          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
-        />
-      ) : (
-        // Fallback to video element
-        <video 
-          ref={videoRef}
-          src={src}
-          muted
-          preload="metadata"
-          playsInline
-          onEnded={onEnded}
-          onPause={onPause}
-          onError={onError}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
-        />
-      )}
+    <div className={className} style={{ position: 'relative', ...style }}>
       <video 
-        ref={(el) => {
-          videoRef.current = el;
-          onVideoRef?.(el);
-        }}
+        ref={onVideoRef}
         src={src}
         muted
         preload="metadata"
@@ -188,11 +32,13 @@ const VideoThumbnail: React.FC<VideoThumbnailProps> = ({
         onEnded={onEnded}
         onPause={onPause}
         onError={onError}
-        style={{ display: 'none' }}
-      />
-      <canvas 
-        ref={canvasRef}
-        style={{ display: 'none' }}
+        style={{ 
+          width: '100%', 
+          height: '100%', 
+          objectFit: 'cover', 
+          borderRadius: '8px',
+          backgroundColor: '#f0f0f0'
+        }}
       />
     </div>
   );

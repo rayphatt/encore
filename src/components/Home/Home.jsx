@@ -1605,13 +1605,13 @@ const Home = () => {
   const renderGlobalConcerts = () => {
     // Filter concerts by selected year
     const filteredConcerts = globalRankings
-      .filter(concert => concert.rating) // Only show concerts with ratings
+      .filter(concert => concert.averageRating) // Only show concerts with average ratings
       .filter(concert => {
         if (selectedYear === 'all') return true;
         const concertYear = new Date(concert.date).getFullYear();
         return concertYear === parseInt(selectedYear);
       })
-      .sort((a, b) => (b.rating || 0) - (a.rating || 0)); // Sort by rating descending
+      .sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0)); // Sort by average rating descending
 
     return (
       <>
@@ -1631,25 +1631,18 @@ const Home = () => {
           {filteredConcerts.map((concert) => (
             <Card 
               key={concert.id} 
-              className={styles.concertCard}
-              clickable
-              onClick={() => handleConcertClick(concert)}
+              className={styles.globalConcertCard}
             >
-                            <div className={styles.cardHeader}>
-                <div className={styles.concertInfo}>
-                  <div className={styles.artistRow}>
-                    <ArtistImage artistName={concert.artist} size="medium" className={styles.artistImageContainer} />
-                    <div className={styles.artistDetails}>
-                      <div className={styles.artistNameRow}>
+              <div className={styles.globalCardContent}>
+                <div className={styles.globalConcertInfo}>
+                  <div className={styles.globalArtistRow}>
+                    <ArtistImage artistName={concert.artist} size="medium" className={styles.globalArtistImage} />
+                    <div className={styles.globalArtistDetails}>
+                      <div className={styles.globalArtistNameRow}>
                         <h3>{concert.artist}</h3>
                         <ArtistLinks artistName={concert.artist} />
                       </div>
-                      {concert.notes && (concert.notes.includes('Other Artists:') || concert.notes.includes('Openers:')) && (
-                        <p className={styles.openers}>
-                          <strong>Other Artists:</strong> {concert.notes.includes('Other Artists:') ? concert.notes.split('Other Artists:')[1] : concert.notes.split('Openers:')[1]}
-                        </p>
-                      )}
-                      <p className={styles.venue}>
+                      <p className={styles.globalVenue}>
                         {concert.location && concert.location !== 'Unknown City' ? 
                           (() => {
                             // Extract city, state, and country from location
@@ -1703,56 +1696,27 @@ const Home = () => {
                           concert.venue
                         }
                       </p>
-                      <p className={styles.date}>{formatDate(concert.date)}</p>
+                      <p className={styles.globalDate}>{formatDate(concert.date)}</p>
                     </div>
                   </div>
                 </div>
-                <div className={styles.globalRating}>
+                <div className={styles.globalStats}>
                   <div 
-                    className={styles.averageRating}
+                    className={styles.globalAverageRating}
                     style={{
-                      backgroundColor: concert.rating ? getRatingBackgroundColor(concert.rating) : 'var(--color-border)',
-                      color: concert.rating ? getRatingColor(concert.rating) : 'var(--color-text-light)'
+                      backgroundColor: concert.averageRating ? getRatingBackgroundColor(concert.averageRating) : 'var(--color-border)',
+                      color: concert.averageRating ? getRatingColor(concert.averageRating) : 'var(--color-text-light)'
                     }}
                   >
-                    <span className={styles.ratingValue}>
-                      {concert.rating ? concert.rating.toFixed(1) : 'No rating'}
+                    <span className={styles.globalRatingValue}>
+                      {concert.averageRating ? concert.averageRating.toFixed(1) : 'No rating'}
                     </span>
-                    <span className={styles.ratingLabel}>avg</span>
                   </div>
-                  <div className={styles.totalRatings}>
+                  <div className={styles.globalTotalRatings}>
                     {concert.totalRatings || 0} ratings
                   </div>
                 </div>
               </div>
-
-              {concert.images && concert.images.length > 0 && (
-                <div onClick={(e) => e.stopPropagation()}>
-                  <Carousel 
-                    items={convertFilesToMediaItems(concert.images)}
-                    onItemClick={(item, index) => {
-                      try {
-                        handleImageClick(item.file || item.url, { stopPropagation: () => {} });
-                      } catch (error) {
-                        console.error('Error handling image click:', error);
-                      }
-                    }}
-                    className={styles.concertCarousel}
-                  />
-                </div>
-              )}
-
-              {concert.notes && (
-                <div className={styles.notesSection}>
-                  {(concert.notes.includes('Other Artists:') || concert.notes.includes('Openers:')) ? (
-                    <p className={styles.notes}>
-                      {concert.notes.includes('Other Artists:') ? concert.notes.split('\n\nOther Artists:')[0] : concert.notes.split('\n\nOpeners:')[0]}
-                    </p>
-                  ) : (
-                    <p className={styles.notes}>{concert.notes}</p>
-                  )}
-                </div>
-              )}
             </Card>
           ))}
         </div>
@@ -1778,12 +1742,18 @@ const Home = () => {
               className={`${styles.toggleButton} ${viewMode === 'personal' ? styles.active : ''}`}
               onClick={() => handleViewModeChange('personal')}
             >
+              <svg className={styles.toggleIcon} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
               My Rankings
             </button>
             <button 
               className={`${styles.toggleButton} ${viewMode === 'global' ? styles.active : ''}`}
               onClick={() => handleViewModeChange('global')}
             >
+              <svg className={styles.toggleIcon} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+              </svg>
               Global Rankings
             </button>
           </div>

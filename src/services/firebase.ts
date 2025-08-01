@@ -50,6 +50,9 @@ export interface Concert {
   images?: string[];
   createdAt: string;
   updatedAt: string;
+  // Aggregate fields for global rankings
+  totalRatings?: number;
+  averageRating?: number;
 }
 
 // Auth service
@@ -236,10 +239,47 @@ export const firebaseConcertService = {
     const q = query(collection(db, 'concerts'));
     const querySnapshot = await getDocs(q);
     const concerts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Concert[];
-    // Sort and limit in memory for now to avoid index requirement
-    return concerts
-      .filter(concert => concert.rating && concert.rating > 0)
-      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    
+    // Group concerts by unique artist, venue, and date combination
+    const concertGroups = new Map<string, Concert[]>();
+    
+    concerts.forEach(concert => {
+      if (concert.rating && concert.rating > 0) {
+        // Create a unique key for grouping
+        const key = `${concert.artist}|${concert.venue}|${concert.date}`;
+        
+        if (!concertGroups.has(key)) {
+          concertGroups.set(key, []);
+        }
+        concertGroups.get(key)!.push(concert);
+      }
+    });
+    
+    // Calculate aggregate statistics for each group
+    const aggregatedConcerts: Concert[] = [];
+    
+    concertGroups.forEach((groupConcerts, key) => {
+      if (groupConcerts.length > 0) {
+        const firstConcert = groupConcerts[0];
+        const totalRatings = groupConcerts.length;
+        const averageRating = groupConcerts.reduce((sum, concert) => sum + (concert.rating || 0), 0) / totalRatings;
+        
+        // Create aggregated concert object
+        const aggregatedConcert: Concert = {
+          ...firstConcert,
+          id: key, // Use the key as the unique ID
+          totalRatings,
+          averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
+          rating: averageRating // Use average rating for sorting
+        };
+        
+        aggregatedConcerts.push(aggregatedConcert);
+      }
+    });
+    
+    // Sort by average rating descending and limit to top 50
+    return aggregatedConcerts
+      .sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0))
       .slice(0, 50);
   },
 

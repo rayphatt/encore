@@ -10,6 +10,13 @@ interface SpotifyArtist {
   }>;
 }
 
+interface SpotifyArtistInfo {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  spotifyUrl: string;
+}
+
 interface SpotifySearchResponse {
   artists: {
     items: SpotifyArtist[];
@@ -29,6 +36,10 @@ class SpotifyService {
     }
 
     try {
+      console.log('🔐 Spotify: Getting access token...');
+      console.log('🔐 Spotify: Client ID:', this.clientId);
+      console.log('🔐 Spotify: Client Secret length:', this.clientSecret?.length || 0);
+      
       const response = await fetch('https://accounts.spotify.com/api/token', {
         method: 'POST',
         headers: {
@@ -38,14 +49,21 @@ class SpotifyService {
         body: 'grant_type=client_credentials'
       });
 
+      console.log('🔐 Spotify: Token response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Failed to get Spotify access token');
+        const errorText = await response.text();
+        console.error('🔐 Spotify: Token error response:', errorText);
+        throw new Error(`Failed to get Spotify access token: ${response.status} ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('🔐 Spotify: Token response data:', data);
+      
       this.accessToken = data.access_token as string;
       this.tokenExpiry = Date.now() + (data.expires_in * 1000) - 60000; // Expire 1 minute early
       
+      console.log('🔐 Spotify: Access token obtained successfully');
       return this.accessToken;
     } catch (error) {
       console.error('Error getting Spotify access token:', error);
@@ -59,13 +77,7 @@ class SpotifyService {
       console.log('🔍 Spotify: Client ID length:', this.clientId?.length);
       console.log('🔍 Spotify: Client Secret length:', this.clientSecret?.length);
       
-      // Skip if using mock data
-      if (API_CONFIG.USE_MOCK_DATA) {
-        console.log('🔍 Spotify: Using mock data, skipping');
-        return null;
-      }
-
-      // Skip if no credentials
+      // Skip if no credentials (but allow even with mock data enabled)
       if (this.clientId === 'YOUR_SPOTIFY_CLIENT_ID' || this.clientSecret === 'YOUR_SPOTIFY_CLIENT_SECRET') {
         console.log('🔍 Spotify: No credentials provided, skipping');
         return null;
@@ -124,6 +136,72 @@ class SpotifyService {
     this.imageCache.set(cacheKey, imageUrl);
     
     return imageUrl;
+  }
+
+  async getArtistInfo(artistName: string): Promise<SpotifyArtistInfo | null> {
+    try {
+      console.log('🔍 Spotify: Getting artist info for:', artistName);
+      
+      // Skip if no credentials (but allow even with mock data enabled)
+      if (this.clientId === 'YOUR_SPOTIFY_CLIENT_ID' || this.clientSecret === 'YOUR_SPOTIFY_CLIENT_SECRET') {
+        console.log('🔍 Spotify: No credentials provided, skipping');
+        return null;
+      }
+
+      const token = await this.getAccessToken();
+      
+      const response = await fetch(
+        `https://api.spotify.com/v1/search?q=${encodeURIComponent(artistName)}&type=artist&limit=1`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to search Spotify artists');
+      }
+
+      const data: SpotifySearchResponse = await response.json();
+      
+      if (data.artists.items.length > 0) {
+        const artist = data.artists.items[0];
+        const imageUrl = artist.images && artist.images.length > 0 ? artist.images[0].url : null;
+        const spotifyUrl = `https://open.spotify.com/artist/${artist.id}`;
+        
+        console.log('🔍 Spotify: Found artist:', artist.name, 'with ID:', artist.id);
+        
+        return {
+          id: artist.id,
+          name: artist.name,
+          imageUrl,
+          spotifyUrl
+        };
+      }
+
+      console.log('🔍 Spotify: No artist found');
+      return null;
+    } catch (error) {
+      console.error('Error getting artist info from Spotify:', error);
+      return null;
+    }
+  }
+
+  // Cache for artist info to avoid repeated API calls
+  private artistInfoCache = new Map<string, SpotifyArtistInfo | null>();
+
+  async getArtistInfoCached(artistName: string): Promise<SpotifyArtistInfo | null> {
+    const cacheKey = artistName.toLowerCase().trim();
+    
+    if (this.artistInfoCache.has(cacheKey)) {
+      return this.artistInfoCache.get(cacheKey) || null;
+    }
+
+    const artistInfo = await this.getArtistInfo(artistName);
+    this.artistInfoCache.set(cacheKey, artistInfo);
+    
+    return artistInfo;
   }
 }
 

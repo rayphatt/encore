@@ -74,14 +74,39 @@ src/
    ```bash
    npm install
    ```
-2. Start development servers (frontend and backend together):
-   ```bash
-   npm run dev:all
-   ```
-   
-   > **Note for PowerShell users:** The '&&' operator does not work in PowerShell. The 'dev:all' script uses a cross-platform solution and should work in all shells.
 
-3. Build for production:
+2. Set up environment variables (optional but recommended):
+   ```bash
+   # Windows PowerShell
+   .\setup-env.ps1
+   
+   # Or manually create .env file with your API keys
+   ```
+
+3. Start development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Build for production:
    ```bash
    npm run build
    ```
+
+## Environment Variables
+
+The following environment variables can be configured in your `.env` file:
+
+### Required for Enhanced Features
+- `VITE_SPOTIFY_CLIENT_ID` - Your Spotify Client ID (for direct artist links)
+- `VITE_SPOTIFY_CLIENT_SECRET` - Your Spotify Client Secret (for direct artist links)
+
+### Optional
+- `VITE_LASTFM_API_KEY` - Last.fm API key (for artist search)
+- `VITE_GOOGLE_PLACES_API_KEY` - Google Places API key (for venue search)
+- `VITE_USE_MOCK_DATA` - Set to `false` to use real APIs (default: `true`)
+
+### Future Monetization
+- Ticketmaster affiliate links can be added later for revenue generation
+
+> **Security Note:** Environment files (`.env`, `.env.production`) are automatically excluded from Git to keep your API keys secure.

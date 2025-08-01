@@ -265,6 +265,13 @@
   min-width: 0; /* Allow text to wrap */
 }
 
+.artistNameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
 .concertInfo h3 {
   font-size: var(--font-size-h3);
   margin-bottom: var(--spacing-xs);
@@ -1163,4 +1170,36 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
+}
+
+/* Upload Progress Styles */
+.uploadProgress {
+  margin: var(--spacing-lg) 0;
+  padding: var(--spacing-md);
+  background: var(--color-background-light);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: var(--color-border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: var(--spacing-sm);
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light));
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progressStatus {
+  margin: 0;
+  font-size: var(--font-size-small);
+  color: var(--color-text-light);
+  text-align: center;
 } 

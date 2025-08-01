@@ -207,27 +207,12 @@ class SearchService {
       return filtered.slice(0, 10); // Limit to 10 results
     }
 
-        console.log('🌐 Using real Google Places API via backend proxy');
+        console.log('🌐 Using mock venue data (backend not available)');
     
+    // For now, use mock data since we're not using the backend
+    // In the future, this could be replaced with direct Google Places API calls
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/venues/search?query=${encodeURIComponent(query)}`
-      );
-      
-      console.log('📡 Backend venue API response status:', response.status);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch venues from backend');
-      }
-      
-      const venues = await response.json();
-      console.log('🌐 Real API results:', venues.length, 'venues found');
-      return venues;
-    } catch (error) {
-      console.error('❌ Error searching venues:', error);
-      console.log('🔄 Falling back to mock data due to backend error');
-      
-      // Fallback to mock data if backend fails
+      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 300));
       
       const queryLower = query.toLowerCase();
@@ -255,8 +240,12 @@ class SearchService {
         return aNameLower.localeCompare(bNameLower);
       });
       
-      console.log('📋 Fallback mock results:', sorted.length, 'venues found');
+      console.log('📋 Mock venue results:', sorted.length, 'venues found');
       return sorted.slice(0, 10);
+    } catch (error) {
+      console.error('❌ Error searching venues:', error);
+      console.log('🔄 Returning empty results due to error');
+      return [];
     }
   }
 

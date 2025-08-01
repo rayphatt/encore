@@ -25,12 +25,40 @@ const ArtistImage: React.FC<ArtistImageProps> = ({
       setHasError(false);
       
       try {
+        console.log('🖼️ ArtistImage: Fetching image for:', artistName);
         const url = await spotifyService.getArtistImageCached(artistName);
-        setImageUrl(url);
+        console.log('🖼️ ArtistImage: Got URL:', url);
+        
+        if (url) {
+          // Test if the image loads successfully
+          const img = new Image();
+          const timeout = setTimeout(() => {
+            console.log('🖼️ ArtistImage: Image load timeout, using placeholder');
+            setHasError(true);
+            setIsLoading(false);
+          }, 5000); // 5 second timeout
+          
+          img.onload = () => {
+            console.log('🖼️ ArtistImage: Image loaded successfully');
+            clearTimeout(timeout);
+            setImageUrl(url);
+            setIsLoading(false);
+          };
+          img.onerror = () => {
+            console.log('🖼️ ArtistImage: Image failed to load, using placeholder');
+            clearTimeout(timeout);
+            setHasError(true);
+            setIsLoading(false);
+          };
+          img.src = url;
+        } else {
+          console.log('🖼️ ArtistImage: No URL returned, using placeholder');
+          setHasError(true);
+          setIsLoading(false);
+        }
       } catch (error) {
         console.error('Error fetching artist image:', error);
         setHasError(true);
-      } finally {
         setIsLoading(false);
       }
     };
@@ -55,6 +83,11 @@ const ArtistImage: React.FC<ArtistImageProps> = ({
         <span className={styles.placeholderText}>
           {artistName.charAt(0).toUpperCase()}
         </span>
+        {hasError && (
+          <div className={styles.errorTooltip}>
+            <span>Image unavailable</span>
+          </div>
+        )}
       </div>
     );
   }

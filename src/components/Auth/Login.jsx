@@ -8,7 +8,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, loginWithGoogle, loginWithApple, isLoading, error, clearError, user } = useAuth();
+  const { login, isLoading, error, clearError, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -62,17 +62,7 @@ const Login = () => {
     }
   };
 
-  const handleSocialLogin = async (provider) => {
-    try {
-      if (provider === 'google') {
-        await loginWithGoogle();
-      } else if (provider === 'apple') {
-        await loginWithApple();
-      }
-    } catch (err) {
-      console.error(`${provider} login failed:`, err);
-    }
-  };
+
 
   if (isLoading) {
     return (
@@ -97,7 +87,11 @@ const Login = () => {
 
         {formError && (
           <div className={styles.error}>
-            {formError}
+            <div className={styles.errorIcon}>⚠️</div>
+            <div className={styles.errorContent}>
+              <p className={styles.errorTitle}>Sign In Failed</p>
+              <p className={styles.errorMessage}>{formError}</p>
+            </div>
           </div>
         )}
 
@@ -148,28 +142,7 @@ const Login = () => {
           </Button>
         </form>
 
-        <div className={styles.divider}>
-          <span>or continue with</span>
-        </div>
 
-        <div className={styles.socialButtons}>
-          <Button 
-            secondary 
-            fullWidth 
-            onClick={() => handleSocialLogin('google')}
-            disabled={isLoading}
-          >
-            Continue with Google
-          </Button>
-          <Button 
-            secondary 
-            fullWidth 
-            onClick={() => handleSocialLogin('apple')}
-            disabled={isLoading}
-          >
-            Continue with Apple
-          </Button>
-        </div>
 
         <p className={styles.switchPrompt}>
           Don't have an account?{' '}

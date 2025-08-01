@@ -15,6 +15,7 @@ import { useToast } from '../../contexts/ToastContext';
 import { searchService } from '../../services/search';
 import { getRatingColor, getRatingBackgroundColor } from '../../utils/ratingColors';
 import ArtistImage from '../UI/ArtistImage/ArtistImage';
+import ArtistLinks from '../UI/ArtistLinks/ArtistLinks';
 import Carousel from '../UI/Carousel/Carousel';
 
 const FREE_CONCERT_LIMIT = 10;
@@ -75,6 +76,8 @@ const Home = () => {
   const [selectedImages, setSelectedImages] = useState([]);
   const [editingImages, setEditingImages] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState('');
   
   // Autocomplete states
   const [artistQuery, setArtistQuery] = useState('');
@@ -402,6 +405,10 @@ const Home = () => {
 
   const handleFirstConcertRatingComplete = async (rating) => {
     try {
+      setIsUploading(true);
+      setUploadProgress(0);
+      setUploadStatus('Creating concert...');
+      
       // Now create the concert with the rating and images
       const concert = await createConcert({
         ...newConcertData,
@@ -409,6 +416,8 @@ const Home = () => {
         images: selectedImages // Include selected images
       });
       
+      setUploadProgress(100);
+      setUploadStatus('Complete!');
       showToast('Concert added successfully!', 'success');
       setShowFirstConcertRating(false);
       
@@ -434,6 +443,10 @@ const Home = () => {
     } catch (err) {
       console.error('Failed to create concert with rating:', err);
       showToast('Failed to create concert. Please try again.', 'error');
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+      setUploadStatus('');
     }
   };
 
@@ -457,6 +470,10 @@ const Home = () => {
 
   const handleRankingComplete = async (rating) => {
     try {
+      setIsUploading(true);
+      setUploadProgress(0);
+      setUploadStatus('Creating concert...');
+      
       // Now create the concert with the rating and images
       const concert = await createConcert({
         ...newConcertData,
@@ -464,6 +481,8 @@ const Home = () => {
         images: selectedImages // Include selected images
       });
       
+      setUploadProgress(100);
+      setUploadStatus('Complete!');
       showToast('Concert added successfully!', 'success');
       setShowRankingComparison(false);
       
@@ -489,6 +508,10 @@ const Home = () => {
     } catch (err) {
       console.error('Failed to create concert with rating:', err);
       showToast('Failed to create concert. Please try again.', 'error');
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+      setUploadStatus('');
     }
   };
 
@@ -698,59 +721,70 @@ const Home = () => {
   };
 
   const handleImageUpload = (event, isEditing = false) => {
-    console.log('File upload triggered:', event.target.files);
-    
-    const files = Array.from(event.target.files);
-    console.log('Files selected:', files);
-    
-    // Check file sizes and types
-    const validFiles = [];
-    const invalidFiles = [];
-    
-    files.forEach(file => {
-      const isVideo = file.type.startsWith('video/');
-      const isImage = file.type.startsWith('image/');
-      const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // 50MB for videos, 10MB for images
+    try {
+      console.log('File upload triggered:', event.target.files);
       
-      if (!isVideo && !isImage) {
-        invalidFiles.push(`${file.name} (unsupported file type)`);
-      } else if (file.size > maxSize) {
-        invalidFiles.push(`${file.name} (file too large - max ${isVideo ? '50MB' : '10MB'})`);
-      } else {
-        validFiles.push(file);
+      if (!event.target.files || event.target.files.length === 0) {
+        showToast('No files selected', 'error');
+        return;
       }
-    });
-    
-    if (invalidFiles.length > 0) {
-      showToast(`Some files were skipped: ${invalidFiles.join(', ')}`, 'warning');
-    }
-    
-    if (validFiles.length === 0) {
-      showToast('No valid files selected', 'error');
+      
+      const files = Array.from(event.target.files);
+      console.log('Files selected:', files);
+      
+      // Check file sizes and types
+      const validFiles = [];
+      const invalidFiles = [];
+      
+      files.forEach(file => {
+        const isVideo = file.type.startsWith('video/');
+        const isImage = file.type.startsWith('image/');
+        const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // 50MB for videos, 10MB for images
+        
+        if (!isVideo && !isImage) {
+          invalidFiles.push(`${file.name} (unsupported file type)`);
+        } else if (file.size > maxSize) {
+          invalidFiles.push(`${file.name} (file too large - max ${isVideo ? '50MB' : '10MB'})`);
+        } else {
+          validFiles.push(file);
+        }
+      });
+      
+      if (invalidFiles.length > 0) {
+        showToast(`Some files were skipped: ${invalidFiles.join(', ')}`, 'warning');
+      }
+      
+      if (validFiles.length === 0) {
+        showToast('No valid files selected', 'error');
+        event.target.value = '';
+        return;
+      }
+      
+      console.log('Valid media files:', validFiles);
+      
+      if (isEditing) {
+        setEditingImages(prev => {
+          const newImages = [...prev, ...validFiles];
+          console.log('Updated editing images:', newImages);
+          return newImages;
+        });
+      } else {
+        setSelectedImages(prev => {
+          const newImages = [...prev, ...validFiles];
+          console.log('Updated selected images:', newImages);
+          return newImages;
+        });
+      }
+      
+      showToast(`Added ${validFiles.length} file${validFiles.length > 1 ? 's' : ''}`, 'success');
+      
+      // Reset the file input so the same file can be selected again
       event.target.value = '';
-      return;
+    } catch (error) {
+      console.error('Error handling file upload:', error);
+      showToast('Error processing files. Please try again.', 'error');
+      event.target.value = '';
     }
-    
-    console.log('Valid media files:', validFiles);
-    
-    if (isEditing) {
-      setEditingImages(prev => {
-        const newImages = [...prev, ...validFiles];
-        console.log('Updated editing images:', newImages);
-        return newImages;
-      });
-    } else {
-      setSelectedImages(prev => {
-        const newImages = [...prev, ...validFiles];
-        console.log('Updated selected images:', newImages);
-        return newImages;
-      });
-    }
-    
-    showToast(`Added ${validFiles.length} file${validFiles.length > 1 ? 's' : ''}`, 'success');
-    
-    // Reset the file input so the same file can be selected again
-    event.target.value = '';
   };
 
   const handleArtistSelect = (artist, index = 0) => {
@@ -1292,6 +1326,8 @@ const Home = () => {
       }
 
       setIsUploading(true);
+      setUploadProgress(0);
+      setUploadStatus('Preparing files...');
       showToast('Processing files and saving changes...', 'info', 5000);
 
       // Combine existing images with new uploaded images
@@ -1310,6 +1346,10 @@ const Home = () => {
       console.log('Updating concert with images:', allImages.length);
       console.log('Image types:', allImages.map(img => typeof img === 'string' ? 'string' : img.type));
 
+      // Update progress for file processing
+      setUploadProgress(25);
+      setUploadStatus('Processing images...');
+
       // Update the concert in the database with timeout
       const updatePromise = updateConcert(editingConcert.id, {
         artist: editingConcert.artist,
@@ -1325,8 +1365,13 @@ const Home = () => {
         setTimeout(() => reject(new Error('Update timed out')), 30000); // Reduced to 30 second timeout
       });
 
+      setUploadProgress(50);
+      setUploadStatus('Uploading to database...');
+
       try {
         await Promise.race([updatePromise, timeoutPromise]);
+        setUploadProgress(100);
+        setUploadStatus('Complete!');
       } catch (error) {
         console.error('Update failed:', error);
         if (error.message.includes('timed out')) {
@@ -1360,6 +1405,8 @@ const Home = () => {
       showToast('Failed to update concert. Please try again.', 'error');
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
+      setUploadStatus('');
     }
   };
 
@@ -1439,7 +1486,10 @@ const Home = () => {
               <div className={styles.artistRow}>
                 <ArtistImage artistName={concert.artist} size="medium" className={styles.artistImageContainer} />
                 <div className={styles.artistDetails}>
-                  <h3>{concert.artist}</h3>
+                  <div className={styles.artistNameRow}>
+                    <h3>{concert.artist}</h3>
+                    <ArtistLinks artistName={concert.artist} />
+                  </div>
                   {concert.notes && (concert.notes.includes('Other Artists:') || concert.notes.includes('Openers:')) && (
                     <p className={styles.openers}>
                       <strong>Other Artists:</strong> {concert.notes.includes('Other Artists:') ? concert.notes.split('Other Artists:')[1] : concert.notes.split('Openers:')[1]}
@@ -1590,7 +1640,10 @@ const Home = () => {
                   <div className={styles.artistRow}>
                     <ArtistImage artistName={concert.artist} size="medium" className={styles.artistImageContainer} />
                     <div className={styles.artistDetails}>
-                      <h3>{concert.artist}</h3>
+                      <div className={styles.artistNameRow}>
+                        <h3>{concert.artist}</h3>
+                        <ArtistLinks artistName={concert.artist} />
+                      </div>
                       {concert.notes && (concert.notes.includes('Other Artists:') || concert.notes.includes('Openers:')) && (
                         <p className={styles.openers}>
                           <strong>Other Artists:</strong> {concert.notes.includes('Other Artists:') ? concert.notes.split('Other Artists:')[1] : concert.notes.split('Openers:')[1]}
@@ -1911,6 +1964,17 @@ const Home = () => {
         isOpen={showRankingComparison}
         onClose={handleRankingCancel}
       >
+        {isUploading && (
+          <div className={styles.uploadProgress}>
+            <div className={styles.progressBar}>
+              <div 
+                className={styles.progressFill} 
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+            <p className={styles.progressStatus}>{uploadStatus}</p>
+          </div>
+        )}
         <RankingComparison
           newConcert={newConcertData}
           existingConcerts={personalConcerts}
@@ -1924,6 +1988,17 @@ const Home = () => {
         isOpen={showFirstConcertRating}
         onClose={handleFirstConcertRatingCancel}
       >
+        {isUploading && (
+          <div className={styles.uploadProgress}>
+            <div className={styles.progressBar}>
+              <div 
+                className={styles.progressFill} 
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+            <p className={styles.progressStatus}>{uploadStatus}</p>
+          </div>
+        )}
         <FirstConcertRating
           newConcert={newConcertData}
           onComplete={handleFirstConcertRatingComplete}
@@ -2210,6 +2285,18 @@ const Home = () => {
                 )}
               </div>
 
+              {isUploading && (
+                <div className={styles.uploadProgress}>
+                  <div className={styles.progressBar}>
+                    <div 
+                      className={styles.progressFill} 
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                  <p className={styles.progressStatus}>{uploadStatus}</p>
+                </div>
+              )}
+              
               <div className={styles.formActions}>
                 <Button type="submit" disabled={isUploading}>
                   {isUploading ? 'Saving...' : 'Save Changes'}

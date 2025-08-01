@@ -126,7 +126,11 @@ const SignUp = () => {
 
         {formError && (
           <div className={styles.error}>
-            {formError}
+            <div className={styles.errorIcon}>⚠️</div>
+            <div className={styles.errorContent}>
+              <p className={styles.errorTitle}>Sign Up Failed</p>
+              <p className={styles.errorMessage}>{formError}</p>
+            </div>
           </div>
         )}
 

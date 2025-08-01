@@ -19,15 +19,17 @@ if [ ! -f ".env" ]; then
     echo "📝 Creating .env file..."
     cat > .env << EOF
 # Frontend Environment Variables
-VITE_API_BASE_URL=http://localhost:3000
-VITE_USE_MOCK_DATA=true
+VITE_USE_MOCK_DATA=false
 
-# Backend Environment Variables
-JWT_SECRET=your_secure_jwt_secret_here
-PORT=3000
-NODE_ENV=development
+# Spotify API Credentials (for direct artist links)
+VITE_SPOTIFY_CLIENT_ID=daafeb9e982844319cc6006868adda87
+VITE_SPOTIFY_CLIENT_SECRET=3eb779de1d7d4f84b04eda0f269a40e2
+
+# Optional API Keys (for enhanced features)
+# VITE_LASTFM_API_KEY=your_lastfm_api_key_here
+# VITE_GOOGLE_PLACES_API_KEY=your_google_places_api_key_here
 EOF
-    echo "✅ .env file created"
+    echo "✅ .env file created with Spotify credentials"
 else
     echo "✅ .env file already exists"
 fi
@@ -37,11 +39,17 @@ if [ ! -f ".env.production" ]; then
     echo "📝 Creating .env.production file..."
     cat > .env.production << EOF
 # Production Environment Variables
-# Update VITE_API_BASE_URL with your Railway backend URL after deployment
-VITE_API_BASE_URL=https://your-railway-backend-url.railway.app
 VITE_USE_MOCK_DATA=false
+
+# Spotify API Credentials (for direct artist links)
+VITE_SPOTIFY_CLIENT_ID=daafeb9e982844319cc6006868adda87
+VITE_SPOTIFY_CLIENT_SECRET=3eb779de1d7d4f84b04eda0f269a40e2
+
+# Optional API Keys (for enhanced features)
+# VITE_LASTFM_API_KEY=your_lastfm_api_key_here
+# VITE_GOOGLE_PLACES_API_KEY=your_google_places_api_key_here
 EOF
-    echo "✅ .env.production file created"
+    echo "✅ .env.production file created with Spotify credentials"
 else
     echo "✅ .env.production file already exists"
 fi
@@ -49,8 +57,8 @@ fi
 echo ""
 echo "🎯 Next Steps:"
 echo "1. Create a GitHub repository and push your code"
-echo "2. Follow the DEPLOYMENT.md guide to deploy to Vercel and Railway"
-echo "3. Update your domain DNS settings"
-echo "4. Test your deployment at https://join-encore.com"
+echo "2. Deploy to Vercel (frontend only - no backend needed)"
+echo "3. Configure Firebase for production"
+echo "4. Test your deployment"
 echo ""
 echo "📚 See DEPLOYMENT.md for detailed instructions" 

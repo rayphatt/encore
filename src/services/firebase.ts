@@ -56,42 +56,52 @@ export interface Concert {
 export const firebaseAuthService = {
   // Register new user
   async register(email: string, password: string, name: string, phone: string): Promise<User> {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-    // Update profile with display name
-    await updateProfile(user, { displayName: name });
+      // Update profile with display name
+      await updateProfile(user, { displayName: name });
 
-    // Save additional user data to Firestore
-    const userData: Omit<User, 'id'> = {
-      email: user.email!,
-      name,
-      phone
-    };
+      // Save additional user data to Firestore
+      const userData: Omit<User, 'id'> = {
+        email: user.email!,
+        name,
+        phone
+      };
 
-    await setDoc(doc(db, 'users', user.uid), userData);
+      await setDoc(doc(db, 'users', user.uid), userData);
 
-    return {
-      id: user.uid,
-      ...userData
-    };
+      return {
+        id: user.uid,
+        ...userData
+      };
+    } catch (error) {
+      // Re-throw the error so it can be handled by the AuthContext
+      throw error;
+    }
   },
 
   // Login user
   async login(email: string, password: string): Promise<User> {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-    // Get additional user data from Firestore
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-    const userData = userDoc.data();
+      // Get additional user data from Firestore
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const userData = userDoc.data();
 
-    return {
-      id: user.uid,
-      email: user.email!,
-      name: user.displayName || userData?.name || '',
-      phone: userData?.phone || ''
-    };
+      return {
+        id: user.uid,
+        email: user.email!,
+        name: user.displayName || userData?.name || '',
+        phone: userData?.phone || ''
+      };
+    } catch (error) {
+      // Re-throw the error so it can be handled by the AuthContext
+      throw error;
+    }
   },
 
   // Logout user
@@ -159,41 +169,57 @@ export const firebaseAuthService = {
 export const firebaseConcertService = {
   // Create new concert
   async createConcert(userId: string, concertData: Omit<Concert, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<Concert> {
-    const now = new Date().toISOString();
-    
-    // Handle image uploads if present
-    let imageUrls: string[] = [];
-    if (concertData.images && concertData.images.length > 0) {
-      // Check if images are File objects or already URLs
-      const fileImages = concertData.images.filter(img => 
-        typeof img === 'object' && img !== null && 'name' in img && 'type' in img
-      ) as File[];
-      if (fileImages.length > 0) {
-        imageUrls = await this.uploadImages(userId, fileImages);
-      } else {
-        // Images are already URLs
-        imageUrls = concertData.images as string[];
+    try {
+      const now = new Date().toISOString();
+      
+      // Validate required fields
+      if (!concertData.artist || !concertData.venue || !concertData.date) {
+        throw new Error('Artist, venue, and date are required');
       }
-    }
-    
-    // Use provided location or derive from venue name as fallback
-    const finalLocation = concertData.location || (concertData.venue.includes(',') ? concertData.venue : `${concertData.venue}, Unknown City`);
-    
-    const concertToSave = {
-      ...concertData,
-      location: finalLocation,
-      userId,
-      images: imageUrls,
-      createdAt: now,
-      updatedAt: now
-    };
+      
+      // Handle image uploads if present
+      let imageUrls: string[] = [];
+      if (concertData.images && concertData.images.length > 0) {
+        try {
+          // Check if images are File objects or already URLs
+          const fileImages = concertData.images.filter(img => 
+            typeof img === 'object' && img !== null && 'name' in img && 'type' in img
+          ) as File[];
+          if (fileImages.length > 0) {
+            imageUrls = await this.uploadImages(userId, fileImages);
+          } else {
+            // Images are already URLs
+            imageUrls = concertData.images as string[];
+          }
+        } catch (uploadError) {
+          console.error('Error uploading images:', uploadError);
+          // Continue without images rather than failing the entire operation
+          imageUrls = [];
+        }
+      }
+      
+      // Use provided location or derive from venue name as fallback
+      const finalLocation = concertData.location || (concertData.venue.includes(',') ? concertData.venue : `${concertData.venue}, Unknown City`);
+      
+      const concertToSave = {
+        ...concertData,
+        location: finalLocation,
+        userId,
+        images: imageUrls,
+        createdAt: now,
+        updatedAt: now
+      };
 
-    const docRef = await addDoc(collection(db, 'concerts'), concertToSave);
-    
-    return {
-      id: docRef.id,
-      ...concertToSave
-    };
+      const docRef = await addDoc(collection(db, 'concerts'), concertToSave);
+      
+      return {
+        id: docRef.id,
+        ...concertToSave
+      };
+    } catch (error) {
+      console.error('Error creating concert:', error);
+      throw new Error(`Failed to create concert: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   },
 
   // Get user's concerts
@@ -219,123 +245,146 @@ export const firebaseConcertService = {
 
   // Update concert
   async updateConcert(concertId: string, concertData: Partial<Concert>): Promise<void> {
-    console.log('=== UPDATE CONCERT DEBUG ===');
-    console.log('concertId:', concertId);
-    console.log('concertData:', concertData);
-    
-    const updateData: any = {
-      ...concertData,
-      updatedAt: new Date().toISOString()
-    };
-    
-    // Handle image uploads if present
-    if (concertData.images && Array.isArray(concertData.images) && concertData.images.length > 0) {
-      console.log('Processing images for update...');
-      // Check if images are File objects (new uploads) or URLs (existing)
-      const newImages = concertData.images.filter(img => 
-        typeof img === 'object' && img !== null && 'name' in img && 'type' in img
-      ) as File[];
-      const existingImages = concertData.images.filter(img => typeof img === 'string') as string[];
-      
-      console.log('newImages:', newImages);
-      console.log('existingImages:', existingImages);
-      
-      if (newImages.length > 0) {
-        console.log('Found new images to upload');
-        // Get the concert to find userId for upload path
-        const concertDoc = await getDoc(doc(db, 'concerts', concertId));
-        const concert = concertDoc.data();
-        if (concert) {
-          console.log('Found concert, uploading images...');
-          const uploadedUrls = await this.uploadImages(concert.userId, newImages);
-          console.log('Uploaded URLs:', uploadedUrls);
-          updateData.images = [...existingImages, ...uploadedUrls];
-        }
-      } else {
-        console.log('No new images to upload');
-        updateData.images = existingImages;
-      }
-    } else {
-      console.log('No images in concertData');
-    }
-    
-    console.log('Final updateData:', updateData);
-    const dataSize = JSON.stringify(updateData).length;
-    console.log('Total data size:', dataSize, 'bytes');
-    
-    // Firestore has a 1MB document size limit - implement chunked uploads
-    if (dataSize > 500000) { // 500KB limit to be safe
-      console.error('Data too large for Firestore:', dataSize, 'bytes');
-      
-      // Check if we have multiple files that can be split
-      const newImages = concertData.images?.filter(img => 
-        typeof img === 'object' && img !== null && 'name' in img && 'type' in img
-      ) as File[];
-      
-      if (newImages && newImages.length > 1) {
-        console.log('Attempting chunked upload - splitting files into smaller batches');
-        
-        // Split files into smaller batches
-        const batchSize = Math.ceil(newImages.length / 2); // Split into 2 batches
-        const batch1 = newImages.slice(0, batchSize);
-        const batch2 = newImages.slice(batchSize);
-        
-        console.log(`Splitting ${newImages.length} files into batches of ${batchSize} and ${batch2.length}`);
-        
-        // Get the concert to find userId for upload path
-        const concertDoc = await getDoc(doc(db, 'concerts', concertId));
-        const concert = concertDoc.data();
-        
-        if (!concert) {
-          throw new Error('Concert not found');
-        }
-        
-        // Upload first batch
-        if (batch1.length > 0) {
-          const uploadedUrls1 = await this.uploadImages(concert.userId, batch1);
-          const existingImages = concertData.images?.filter(img => typeof img === 'string') as string[];
-          const updateData1 = {
-            ...concertData,
-            images: [...existingImages, ...uploadedUrls1],
-            updatedAt: new Date().toISOString()
-          };
-          
-          await updateDoc(doc(db, 'concerts', concertId), updateData1);
-          console.log('First batch uploaded successfully');
-        }
-        
-        // Upload second batch if it exists
-        if (batch2.length > 0) {
-          const uploadedUrls2 = await this.uploadImages(concert.userId, batch2);
-          const currentDoc = await getDoc(doc(db, 'concerts', concertId));
-          const currentData = currentDoc.data();
-          const currentImages = currentData?.images || [];
-          
-          const updateData2 = {
-            images: [...currentImages, ...uploadedUrls2],
-            updatedAt: new Date().toISOString()
-          };
-          
-          await updateDoc(doc(db, 'concerts', concertId), updateData2);
-          console.log('Second batch uploaded successfully');
-        }
-        
-        console.log('Chunked upload completed successfully');
-        return;
-      } else {
-        throw new Error('Uploaded files are too large. Please try with fewer or smaller files (under 5MB each).');
-      }
-    }
-    
     try {
-      await updateDoc(doc(db, 'concerts', concertId), updateData);
-      console.log('Database update successful');
+      console.log('=== UPDATE CONCERT DEBUG ===');
+      console.log('concertId:', concertId);
+      console.log('concertData:', concertData);
+      
+      // Validate concert exists
+      const concertDoc = await getDoc(doc(db, 'concerts', concertId));
+      if (!concertDoc.exists()) {
+        throw new Error('Concert not found');
+      }
+      
+      const updateData: any = {
+        ...concertData,
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Handle image uploads if present
+      if (concertData.images && Array.isArray(concertData.images) && concertData.images.length > 0) {
+        console.log('Processing images for update...');
+        // Check if images are File objects (new uploads) or URLs (existing)
+        const newImages = concertData.images.filter(img => 
+          typeof img === 'object' && img !== null && 'name' in img && 'type' in img
+        ) as File[];
+        const existingImages = concertData.images.filter(img => typeof img === 'string') as string[];
+        
+        console.log('newImages:', newImages);
+        console.log('existingImages:', existingImages);
+        
+        if (newImages.length > 0) {
+          console.log('Found new images to upload');
+          const concert = concertDoc.data();
+          if (concert) {
+            try {
+              console.log('Found concert, uploading images...');
+              const uploadedUrls = await this.uploadImages(concert.userId, newImages);
+              console.log('Uploaded URLs:', uploadedUrls);
+              updateData.images = [...existingImages, ...uploadedUrls];
+            } catch (uploadError) {
+              console.error('Error uploading images:', uploadError);
+              // Continue with existing images rather than failing
+              updateData.images = existingImages;
+            }
+          }
+        } else {
+          console.log('No new images to upload');
+          updateData.images = existingImages;
+        }
+      } else {
+        console.log('No images in concertData');
+      }
+      
+      console.log('Final updateData:', updateData);
+      const dataSize = JSON.stringify(updateData).length;
+      console.log('Total data size:', dataSize, 'bytes');
+      
+      // Firestore has a 1MB document size limit - implement chunked uploads
+      if (dataSize > 500000) { // 500KB limit to be safe
+        console.error('Data too large for Firestore:', dataSize, 'bytes');
+        
+        // Check if we have multiple files that can be split
+        const newImages = concertData.images?.filter(img => 
+          typeof img === 'object' && img !== null && 'name' in img && 'type' in img
+        ) as File[];
+        
+        if (newImages && newImages.length > 1) {
+          console.log('Attempting chunked upload - splitting files into smaller batches');
+          
+          // Split files into smaller batches
+          const batchSize = Math.ceil(newImages.length / 2); // Split into 2 batches
+          const batch1 = newImages.slice(0, batchSize);
+          const batch2 = newImages.slice(batchSize);
+          
+          console.log(`Splitting ${newImages.length} files into batches of ${batchSize} and ${batch2.length}`);
+          
+          const concert = concertDoc.data();
+          
+          if (!concert) {
+            throw new Error('Concert not found');
+          }
+          
+          // Upload first batch
+          if (batch1.length > 0) {
+            try {
+              const uploadedUrls1 = await this.uploadImages(concert.userId, batch1);
+              const existingImages = concertData.images?.filter(img => typeof img === 'string') as string[];
+              const updateData1 = {
+                ...concertData,
+                images: [...existingImages, ...uploadedUrls1],
+                updatedAt: new Date().toISOString()
+              };
+              
+              await updateDoc(doc(db, 'concerts', concertId), updateData1);
+              console.log('First batch uploaded successfully');
+            } catch (error) {
+              console.error('Error uploading first batch:', error);
+              throw new Error('Failed to upload images. Please try with smaller files.');
+            }
+          }
+          
+          // Upload second batch if it exists
+          if (batch2.length > 0) {
+            try {
+              const uploadedUrls2 = await this.uploadImages(concert.userId, batch2);
+              const currentDoc = await getDoc(doc(db, 'concerts', concertId));
+              const currentData = currentDoc.data();
+              const currentImages = currentData?.images || [];
+              
+              const updateData2 = {
+                images: [...currentImages, ...uploadedUrls2],
+                updatedAt: new Date().toISOString()
+              };
+              
+              await updateDoc(doc(db, 'concerts', concertId), updateData2);
+              console.log('Second batch uploaded successfully');
+            } catch (error) {
+              console.error('Error uploading second batch:', error);
+              throw new Error('Failed to upload remaining images. Please try with smaller files.');
+            }
+          }
+          
+          console.log('Chunked upload completed successfully');
+          return;
+        } else {
+          throw new Error('Uploaded files are too large. Please try with fewer or smaller files (under 5MB each).');
+        }
+      }
+      
+      try {
+        await updateDoc(doc(db, 'concerts', concertId), updateData);
+        console.log('Database update successful');
+      } catch (error) {
+        console.error('Database update failed:', error);
+        throw new Error(`Database update failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+      
+      console.log('=== END UPDATE CONCERT DEBUG ===');
     } catch (error) {
-      console.error('Database update failed:', error);
-      throw new Error(`Database update failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Error updating concert:', error);
+      throw new Error(`Failed to update concert: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-    
-    console.log('=== END UPDATE CONCERT DEBUG ===');
   },
 
   // Update concert rating

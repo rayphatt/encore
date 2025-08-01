@@ -29,7 +29,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const handleError = (error: unknown) => {
-    const message = error instanceof Error ? error.message : 'An error occurred';
+    let message = 'An error occurred';
+    
+    if (error instanceof Error) {
+      // Handle Firebase Auth error codes
+      if (error.message.includes('auth/')) {
+        const errorCode = error.message.match(/auth\/([^)]+)/)?.[1];
+        switch (errorCode) {
+          case 'email-already-in-use':
+            message = 'An account with this email already exists. Please try logging in instead.';
+            break;
+          case 'invalid-email':
+            message = 'Please enter a valid email address.';
+            break;
+          case 'weak-password':
+            message = 'Password should be at least 6 characters long.';
+            break;
+          case 'user-not-found':
+            message = 'No account found with this email. Please check your email or sign up.';
+            break;
+          case 'wrong-password':
+            message = 'Incorrect password. Please try again.';
+            break;
+          case 'too-many-requests':
+            message = 'Too many failed attempts. Please try again later.';
+            break;
+          case 'network-request-failed':
+            message = 'Network error. Please check your internet connection and try again.';
+            break;
+          default:
+            message = 'Authentication failed. Please try again.';
+        }
+      } else {
+        message = error.message;
+      }
+    }
+    
     setError(message);
     throw error;
   };

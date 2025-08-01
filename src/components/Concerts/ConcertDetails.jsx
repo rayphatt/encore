@@ -4,6 +4,7 @@ import Card from '../UI/Card/Card';
 import Button from '../UI/Button/Button';
 import { getRatingColor, getRatingBackgroundColor } from '../../utils/ratingColors';
 import ArtistImage from '../UI/ArtistImage/ArtistImage';
+import ArtistLinks from '../UI/ArtistLinks/ArtistLinks';
 
 const ConcertDetails = ({ concert, onClose, onEdit }) => {
   if (!concert) return null;
@@ -25,7 +26,10 @@ const ConcertDetails = ({ concert, onClose, onEdit }) => {
             <div className={styles.artistHeader}>
               <ArtistImage artistName={concert.artist} size="large" className={styles.artistImageContainer} />
               <div className={styles.artistInfo}>
-                <h2>{concert.artist}</h2>
+                <div className={styles.artistNameRow}>
+                  <h2>{concert.artist}</h2>
+                  <ArtistLinks artistName={concert.artist} />
+                </div>
                 {concert.notes && (concert.notes.includes('Other Artists:') || concert.notes.includes('Openers:')) && (
                   <p className={styles.openers}>
                     <strong>Other Artists:</strong> {concert.notes.includes('Other Artists:') ? concert.notes.split('Other Artists:')[1] : concert.notes.split('Openers:')[1]}

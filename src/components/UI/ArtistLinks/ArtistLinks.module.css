@@ -1,0 +1,75 @@
+.artistLinks {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-left: var(--spacing-sm);
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  padding: var(--spacing-xs);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+}
+
+.linkButton:hover {
+  background-color: var(--color-background-light);
+  transform: scale(1.1);
+}
+
+.spotifyIcon {
+  width: 24px;
+  height: 24px;
+  color: #1DB954; /* Spotify green */
+}
+
+.ticketmasterIcon {
+  width: 24px;
+  height: 24px;
+  color: #1E90FF; /* Ticketmaster bright blue - exact specification */
+}
+
+.loading {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loadingSpinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid transparent;
+  border-top: 2px solid #1DB954;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .artistLinks {
+    margin-left: var(--spacing-xs);
+  }
+  
+  .linkButton {
+    width: 20px;
+    height: 20px;
+    padding: 2px;
+  }
+  
+  .spotifyIcon,
+  .ticketmasterIcon {
+    width: 14px;
+    height: 14px;
+  }
+} 

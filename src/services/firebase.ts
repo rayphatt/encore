@@ -231,8 +231,27 @@ export const firebaseConcertService = {
     const q = query(collection(db, 'concerts'), where('userId', '==', userId));
     const querySnapshot = await getDocs(q);
     const concerts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Concert[];
+    
+    // Assign brackets to existing concerts that don't have them
+    const concertsWithBrackets = concerts.map(concert => {
+      if (!concert.bracket && concert.rating) {
+        // Import the function here to avoid circular dependencies
+        const getBracketFromRating = (rating: number): 'Good' | 'Ok' | 'Bad' => {
+          if (rating >= 7.0) return 'Good';
+          if (rating >= 5.0) return 'Ok';
+          return 'Bad';
+        };
+        
+        return {
+          ...concert,
+          bracket: getBracketFromRating(concert.rating)
+        };
+      }
+      return concert;
+    });
+    
     // Sort in memory for now to avoid index requirement
-    return concerts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return concertsWithBrackets.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   },
 
   // Get global rankings
@@ -241,10 +260,27 @@ export const firebaseConcertService = {
     const querySnapshot = await getDocs(q);
     const concerts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Concert[];
     
+    // Assign brackets to existing concerts that don't have them
+    const concertsWithBrackets = concerts.map(concert => {
+      if (!concert.bracket && concert.rating) {
+        const getBracketFromRating = (rating: number): 'Good' | 'Ok' | 'Bad' => {
+          if (rating >= 7.0) return 'Good';
+          if (rating >= 5.0) return 'Ok';
+          return 'Bad';
+        };
+        
+        return {
+          ...concert,
+          bracket: getBracketFromRating(concert.rating)
+        };
+      }
+      return concert;
+    });
+    
     // Group concerts by unique artist, venue, and date combination
     const concertGroups = new Map<string, Concert[]>();
     
-    concerts.forEach(concert => {
+    concertsWithBrackets.forEach(concert => {
       if (concert.rating && concert.rating > 0) {
         // Create a unique key for grouping
         const key = `${concert.artist}|${concert.venue}|${concert.date}`;

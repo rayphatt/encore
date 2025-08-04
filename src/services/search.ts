@@ -416,7 +416,8 @@ class SearchService {
   }
 
   private async searchVenuesGooglePlaces(query: string): Promise<VenueSearchResult[]> {
-    const apiKey = this.googlePlacesApiKey;
+    // Try both sources for the API key
+    const apiKey = this.googlePlacesApiKey || import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
     console.log('🌐 Google Places: API key check -', apiKey ? 'SET' : 'NOT SET');
     if (!apiKey || apiKey === 'YOUR_GOOGLE_PLACES_API_KEY') {
       console.log('🌐 Google Places: No API key available - Get one at https://developers.google.com/maps/documentation/places/web-service/get-api-key');
@@ -460,20 +461,12 @@ class SearchService {
     try {
       console.log('🌐 Nominatim: Searching for venues:', query);
       
-      // Try multiple search strategies to find specific venues
+      // Use fewer, more targeted search strategies for better performance
       const searchStrategies = [
         // Strategy 1: Direct search with the exact query
         query,
-        // Strategy 2: Search for specific venue types that might match
-        `${query} terminal`,
-        `${query} warehouse`,
-        `${query} factory`,
-        `${query} building`,
-        `${query} complex`,
-        // Strategy 3: Location-based search for venues
-        `${query} venue`,
-        `${query} concert venue`,
-        `${query} entertainment venue`
+        // Strategy 2: Add common venue terms if query is short
+        ...(query.length < 10 ? [`${query} venue`, `${query} terminal`] : [])
       ];
       
       const allResults: VenueSearchResult[] = [];
@@ -494,9 +487,9 @@ class SearchService {
         
         const data = await response.json();
         
-        // Add a small delay between requests to respect rate limits
+        // Add a smaller delay between requests to respect rate limits
         if (searchTerm !== searchStrategies[searchStrategies.length - 1]) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 50));
         }
         if (Array.isArray(data) && data.length > 0) {
           const filtered = data.filter((item: any) => {

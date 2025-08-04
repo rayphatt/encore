@@ -40,6 +40,10 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
     console.log('🎯 existingConcerts:', existingConcerts.length);
     console.log('🎯 selectedBracket:', selectedBracket);
     
+    // Get all concerts sorted by rating
+    const allConcerts = [...existingConcerts].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    
+    // Get concerts in the same bracket
     const bracketConcerts = existingConcerts.filter(concert => {
       const concertBracket = concert.bracket || getBracketFromRating(concert.rating || 0);
       console.log('🎯 Concert:', concert.artist, 'Bracket:', concertBracket, 'Expected:', selectedBracket);
@@ -48,15 +52,33 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
     
     console.log('🎯 bracketConcerts found:', bracketConcerts.length);
     
-    // If not enough concerts in the same bracket, include concerts from adjacent brackets
+    // Build comparison concerts list with smart selection
     let finalComparisonConcerts = [...bracketConcerts];
     
-    if (finalComparisonConcerts.length < 3) {
-      const allConcerts = [...existingConcerts].sort((a, b) => (b.rating || 0) - (a.rating || 0));
-      const additionalConcerts = allConcerts.filter(concert => 
-        !finalComparisonConcerts.some(c => c.id === concert.id)
-      );
-      finalComparisonConcerts = [...finalComparisonConcerts, ...additionalConcerts.slice(0, 3 - finalComparisonConcerts.length)];
+    // If we have concerts in the same bracket, add some from adjacent brackets for context
+    if (bracketConcerts.length > 0) {
+      // Add 1-2 concerts from adjacent brackets for better context
+      const adjacentConcerts = allConcerts.filter(concert => {
+        const concertBracket = concert.bracket || getBracketFromRating(concert.rating || 0);
+        return concertBracket !== selectedBracket && !finalComparisonConcerts.some(c => c.id === concert.id);
+      });
+      
+      // Add 1-2 adjacent concerts for context
+      finalComparisonConcerts = [...finalComparisonConcerts, ...adjacentConcerts.slice(0, 2)];
+    } else {
+      // No concerts in same bracket - select the most relevant concerts
+      const { min, max } = getBracketBoundaries(selectedBracket);
+      const targetRating = (min + max) / 2;
+      
+      // Find concerts closest to the target rating
+      const closestConcerts = allConcerts.sort((a, b) => {
+        const aDistance = Math.abs((a.rating || 0) - targetRating);
+        const bDistance = Math.abs((b.rating || 0) - targetRating);
+        return aDistance - bDistance;
+      });
+      
+      // Take the 3-5 closest concerts
+      finalComparisonConcerts = closestConcerts.slice(0, Math.min(5, closestConcerts.length));
     }
     
     console.log('🎯 finalComparisonConcerts:', finalComparisonConcerts.length);
@@ -120,14 +142,7 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
     });
   };
 
-  if (comparisonConcerts.length === 0) {
-    console.log('🎯 No comparison concerts found - using default rating');
-    // If no concerts to compare against, use bracket boundaries to calculate a default rating
-    const { min, max } = getBracketBoundaries(selectedBracket);
-    const defaultRating = (min + max) / 2;
-    onComplete(Number(defaultRating.toFixed(1)));
-    return null;
-  }
+
 
   const comparisonConcert = comparisonConcerts[currentComparison];
   const concertNumber = existingConcerts.length + 1;

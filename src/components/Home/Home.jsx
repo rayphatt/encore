@@ -458,24 +458,10 @@ const Home = () => {
     setSelectedBracket(bracket);
     setShowBracketSelection(false);
     
-    // Check if there are concerts in the same bracket to compare against
-    const concertsInSameBracket = personalConcerts.filter(concert => {
-      const concertBracket = concert.bracket || getBracketFromRating(concert.rating || 0);
-      console.log('🎯 Concert:', concert.artist, 'Rating:', concert.rating, 'Bracket:', concertBracket, 'Expected:', bracket);
-      return concertBracket === bracket;
-    });
-    
-    console.log('🎯 Concerts in same bracket:', concertsInSameBracket.length);
-    
-    // If there are concerts in the same bracket, show ranking comparison
-    if (concertsInSameBracket.length > 0) {
-      console.log('🎯 Showing ranking comparison');
-      setShowRankingComparison(true);
-    } else {
-      console.log('🎯 Showing first concert rating');
-      // For first concert in a bracket or no concerts in same bracket, show rating prompt
-      setShowFirstConcertRating(true);
-    }
+    // Always show ranking comparison for better accuracy
+    // The RankingComparison component will handle finding the most relevant concerts to compare against
+    console.log('🎯 Showing ranking comparison');
+    setShowRankingComparison(true);
   };
 
   const handleBracketSelectionCancel = () => {

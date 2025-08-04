@@ -8,6 +8,7 @@ import Modal from '../UI/Modal/Modal';
 import ConcertDetails from '../Concerts/ConcertDetails';
 import RankingComparison from '../Concerts/RankingComparison';
 import FirstConcertRating from '../Concerts/FirstConcertRating';
+import BracketSelection from '../Concerts/BracketSelection';
 import Autocomplete from '../UI/Autocomplete/Autocomplete';
 import { useConcerts } from '../../contexts/ConcertContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -39,6 +40,8 @@ const Home = () => {
   const [showLimitPrompt, setShowLimitPrompt] = useState(false);
   const [showRankingComparison, setShowRankingComparison] = useState(false);
   const [showFirstConcertRating, setShowFirstConcertRating] = useState(false);
+  const [showBracketSelection, setShowBracketSelection] = useState(false);
+  const [selectedBracket, setSelectedBracket] = useState(null);
   const [showOpenerRating, setShowOpenerRating] = useState(false);
   const [showOpenerRanking, setShowOpenerRanking] = useState(false);
   const [showOpenerPrompt, setShowOpenerPrompt] = useState(false);
@@ -390,13 +393,8 @@ const Home = () => {
         additionalArtists: additionalArtists // Store for later opener ratings
       }));
       
-      // Show ranking comparison for existing concerts
-      if (personalConcerts.length >= 3) {
-        setShowRankingComparison(true);
-      } else {
-        // For first 3 concerts, show rating prompt
-        setShowFirstConcertRating(true);
-      }
+      // Show bracket selection for all concerts
+      setShowBracketSelection(true);
     } catch (err) {
       console.error('Failed to submit concert:', err);
       showToast('Failed to add concert. Please try again.', 'error');
@@ -409,10 +407,11 @@ const Home = () => {
       setUploadProgress(0);
       setUploadStatus('Creating concert...');
       
-      // Now create the concert with the rating and images
+      // Now create the concert with the rating, bracket, and images
       const concert = await createConcert({
         ...newConcertData,
         rating: rating,
+        bracket: selectedBracket,
         images: selectedImages // Include selected images
       });
       
@@ -420,6 +419,7 @@ const Home = () => {
       setUploadStatus('Complete!');
       showToast('Concert added successfully!', 'success');
       setShowFirstConcertRating(false);
+      setSelectedBracket(null);
       
       // Check if there are additional artists to rate
       if (newConcertData.additionalArtists && newConcertData.additionalArtists.length > 0) {
@@ -450,6 +450,38 @@ const Home = () => {
     }
   };
 
+  const handleBracketSelected = (bracket) => {
+    setSelectedBracket(bracket);
+    setShowBracketSelection(false);
+    
+    // Show ranking comparison for existing concerts with ratings
+    const concertsWithRatings = personalConcerts.filter(concert => concert.rating);
+    if (concertsWithRatings.length >= 3) {
+      setShowRankingComparison(true);
+    } else {
+      // For first 3 concerts, show rating prompt
+      setShowFirstConcertRating(true);
+    }
+  };
+
+  const handleBracketSelectionCancel = () => {
+    setShowBracketSelection(false);
+    setSelectedBracket(null);
+    setNewConcertData({
+      artist: '',
+      venue: '',
+      location: '',
+      date: '',
+      notes: '',
+      images: []
+    });
+    setSelectedImages([]);
+    setArtists(['']);
+    setArtistQueries(['']);
+    setArtistOptionsList([[]]);
+    setIsSearchingArtistsList([false]);
+  };
+
   const handleFirstConcertRatingCancel = async () => {
     try {
       // No concert was created, just close the modal
@@ -474,10 +506,11 @@ const Home = () => {
       setUploadProgress(0);
       setUploadStatus('Creating concert...');
       
-      // Now create the concert with the rating and images
+      // Now create the concert with the rating, bracket, and images
       const concert = await createConcert({
         ...newConcertData,
         rating: rating,
+        bracket: selectedBracket,
         images: selectedImages // Include selected images
       });
       
@@ -485,6 +518,7 @@ const Home = () => {
       setUploadStatus('Complete!');
       showToast('Concert added successfully!', 'success');
       setShowRankingComparison(false);
+      setSelectedBracket(null);
       
       // Check if there are additional artists to rate
       if (newConcertData.additionalArtists && newConcertData.additionalArtists.length > 0) {
@@ -519,6 +553,7 @@ const Home = () => {
     try {
       // No concert was created, just close the modal
       setShowRankingComparison(false);
+      setSelectedBracket(null);
       setNewConcertData({
         artist: '',
         venue: '',
@@ -546,6 +581,7 @@ const Home = () => {
         date: newConcertData.date,
         notes: `Opener for ${newConcertData.artist} at ${newConcertData.venue}`,
         rating: rating,
+        bracket: selectedBracket,
         images: [] // Openers typically don't have separate photos
       });
       
@@ -622,6 +658,7 @@ const Home = () => {
         date: newConcertData.date,
         notes: `Opener for ${newConcertData.artist} at ${newConcertData.venue}`,
         rating: rating,
+        bracket: selectedBracket,
         images: [] // Openers typically don't have separate photos
       });
       
@@ -1932,6 +1969,17 @@ const Home = () => {
       </Modal>
 
       <Modal
+        isOpen={showBracketSelection}
+        onClose={handleBracketSelectionCancel}
+      >
+        <BracketSelection
+          newConcert={newConcertData}
+          onBracketSelected={handleBracketSelected}
+          onCancel={handleBracketSelectionCancel}
+        />
+      </Modal>
+
+      <Modal
         isOpen={showRankingComparison}
         onClose={handleRankingCancel}
       >
@@ -1949,9 +1997,10 @@ const Home = () => {
         <RankingComparison
           newConcert={newConcertData}
           existingConcerts={personalConcerts}
+          selectedBracket={selectedBracket}
           onComplete={handleRankingComplete}
           onCancel={handleRankingCancel}
-          isEarlyConcert={concertCount < 3}
+          isEarlyConcert={personalConcerts.filter(concert => concert.rating).length < 3}
         />
       </Modal>
 
@@ -1974,7 +2023,7 @@ const Home = () => {
           newConcert={newConcertData}
           onComplete={handleFirstConcertRatingComplete}
           onCancel={handleFirstConcertRatingCancel}
-          concertNumber={concertCount + 1}
+          concertNumber={personalConcerts.filter(concert => concert.rating).length + 1}
         />
       </Modal>
 
@@ -2044,9 +2093,10 @@ const Home = () => {
             images: []
           }}
           existingConcerts={personalConcerts}
+          selectedBracket={selectedBracket}
           onComplete={handleOpenerRankingComplete}
           onCancel={handleOpenerRankingCancel}
-          isEarlyConcert={false}
+          isEarlyConcert={personalConcerts.filter(concert => concert.rating).length < 3}
         />
       </Modal>
 

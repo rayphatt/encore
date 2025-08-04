@@ -46,6 +46,7 @@ export interface Concert {
   location: string;
   date: string;
   rating?: number;
+  bracket?: 'Good' | 'Ok' | 'Bad';
   notes?: string;
   images?: string[];
   createdAt: string;

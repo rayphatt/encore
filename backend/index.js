@@ -99,7 +99,7 @@ app.get('/api/concerts/my', (req, res) => {
 
 app.post('/api/concerts', validateConcert, (req, res) => {
   try {
-    const { artist, venue, location, date, notes } = req.body;
+    const { artist, venue, location, date, notes, rating, bracket } = req.body;
     
     // Use provided location or derive from venue name as fallback
     const finalLocation = location || (venue.includes(',') ? venue : `${venue}, Unknown City`);
@@ -111,7 +111,8 @@ app.post('/api/concerts', validateConcert, (req, res) => {
       location: finalLocation,
       date,
       notes: notes || '',
-      rating: 7.0,
+      rating: rating || 7.0,
+      bracket: bracket || null,
       totalRatings: 1,
       images: []
     };

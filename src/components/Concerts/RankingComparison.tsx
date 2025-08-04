@@ -22,6 +22,13 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
   onCancel,
   isEarlyConcert = false,
 }) => {
+  console.log('🎯 RankingComparison rendered with:', {
+    newConcert: newConcert.artist,
+    selectedBracket,
+    existingConcertsCount: existingConcerts.length,
+    isEarlyConcert
+  });
+  
   const [currentComparison, setCurrentComparison] = useState<number>(0);
   const [betterThan, setBetterThan] = useState<string[]>([]);
   const [worseThan, setWorseThan] = useState<string[]>([]);

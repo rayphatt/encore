@@ -394,6 +394,7 @@ const Home = () => {
       }));
       
       // Show bracket selection for all concerts
+      console.log('🔧 Setting showBracketSelection to true');
       setShowBracketSelection(true);
     } catch (err) {
       console.error('Failed to submit concert:', err);
@@ -451,14 +452,18 @@ const Home = () => {
   };
 
   const handleBracketSelected = (bracket) => {
+    console.log('🔧 Bracket selected:', bracket);
     setSelectedBracket(bracket);
     setShowBracketSelection(false);
     
     // Show ranking comparison for existing concerts with ratings
     const concertsWithRatings = personalConcerts.filter(concert => concert.rating);
+    console.log('🔧 Concerts with ratings:', concertsWithRatings.length);
     if (concertsWithRatings.length >= 3) {
+      console.log('🔧 Showing ranking comparison');
       setShowRankingComparison(true);
     } else {
+      console.log('🔧 Showing first concert rating');
       // For first 3 concerts, show rating prompt
       setShowFirstConcertRating(true);
     }
@@ -1972,6 +1977,7 @@ const Home = () => {
         isOpen={showBracketSelection}
         onClose={handleBracketSelectionCancel}
       >
+        {console.log('🔧 Rendering bracket selection modal, showBracketSelection:', showBracketSelection)}
         <BracketSelection
           newConcert={newConcertData}
           onBracketSelected={handleBracketSelected}

@@ -61,9 +61,6 @@ const BracketSelection: React.FC<BracketSelectionProps> = ({
             >
               <h3>{bracket}</h3>
             </div>
-            <p className={styles.bracketDescription}>
-              {getBracketDescription(bracket)}
-            </p>
           </Card>
         ))}
       </div>

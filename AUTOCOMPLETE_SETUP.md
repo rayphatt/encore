@@ -15,21 +15,23 @@ Encore now includes intelligent autocomplete for artists and venues when adding/
 
 ### For Production Use
 
-#### 1. Last.fm API (Artists)
+#### 1. Spotify API (Artists)
 **Free tier available**
 
-1. Go to [Last.fm API](https://www.last.fm/api/account/create)
-2. Create a free account
-3. Get your API key
+1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+2. Create a new app
+3. Get your Client ID and Client Secret
 4. Add to `.env` file:
    ```
-   REACT_APP_LASTFM_API_KEY=your_key_here
+   VITE_SPOTIFY_CLIENT_ID=your_client_id_here
+   VITE_SPOTIFY_CLIENT_SECRET=your_client_secret_here
    ```
 
 **Features:**
 - Artist search with images
-- Listener counts
 - Genre information
+- Popularity data
+- High-quality artist photos
 
 #### 2. Google Places API (Venues)
 **Free tier available**
@@ -91,8 +93,8 @@ Once you have API keys:
 - `api.ts` - Configuration and setup instructions
 
 ### APIs Used
-- **Last.fm:** `artist.search` endpoint
-- **Google Places:** `textsearch` endpoint
+- **Spotify:** `search` endpoint for artists
+- **Google Places:** `textsearch` endpoint for venues
 - **Fallback:** Curated mock data
 
 ### Performance

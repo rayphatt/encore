@@ -141,6 +141,27 @@
   font-style: italic;
 }
 
+/* Custom venue styling */
+.customVenue {
+  background-color: rgba(59, 130, 246, 0.05);
+  border-left: 3px solid var(--color-primary);
+}
+
+.customVenue:hover,
+.customVenue.highlighted {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.customVenueText {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.customVenueSubtitle {
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
 /* Scrollbar styling */
 .dropdown::-webkit-scrollbar {
   width: 6px;

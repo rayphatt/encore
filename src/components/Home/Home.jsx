@@ -865,11 +865,23 @@ const Home = () => {
   };
 
   const handleVenueSelect = (venue) => {
-    setNewConcertData(prev => ({ 
-      ...prev, 
-      venue: venue.name,
-      location: venue.subtitle || venue.city || 'Unknown City'
-    }));
+    // Handle custom venue selection
+    if (venue.id === 'custom-venue') {
+      // Extract the venue name from the custom venue option
+      const venueName = venue.name.replace(' (Custom Venue)', '').replace(/^"(.*)"$/, '$1');
+      setNewConcertData(prev => ({ 
+        ...prev, 
+        venue: venueName,
+        location: 'Custom Venue'
+      }));
+    } else {
+      // Handle regular venue selection
+      setNewConcertData(prev => ({ 
+        ...prev, 
+        venue: venue.name,
+        location: venue.subtitle || venue.city || 'Unknown City'
+      }));
+    }
     setVenueOptions([]); // Clear options to stop suggestions
     setIsSearchingVenues(false); // Stop loading state
     // Don't update venueQuery when selecting - this prevents the search from triggering
@@ -898,11 +910,23 @@ const Home = () => {
   };
 
   const handleEditVenueSelect = (venue) => {
-    setEditingConcert(prev => ({ 
-      ...prev, 
-      venue: venue.name,
-      location: venue.subtitle || venue.city || 'Unknown City'
-    }));
+    // Handle custom venue selection
+    if (venue.id === 'custom-venue') {
+      // Extract the venue name from the custom venue option
+      const venueName = venue.name.replace(' (Custom Venue)', '').replace(/^"(.*)"$/, '$1');
+      setEditingConcert(prev => ({ 
+        ...prev, 
+        venue: venueName,
+        location: 'Custom Venue'
+      }));
+    } else {
+      // Handle regular venue selection
+      setEditingConcert(prev => ({ 
+        ...prev, 
+        venue: venue.name,
+        location: venue.subtitle || venue.city || 'Unknown City'
+      }));
+    }
     setVenueOptions([]); // Clear options to stop suggestions
     setIsSearchingVenues(false); // Stop loading state
     // Don't update venueQuery when selecting - this prevents the search from triggering
@@ -1196,31 +1220,16 @@ const Home = () => {
   const convertFilesToMediaItems = (files) => {
     if (!files || files.length === 0) return [];
     
-    console.log('=== CONVERT FILES TO MEDIA ITEMS DEBUG ===');
-    console.log('Converting files to media items:', files);
-    
     return files.map((file, index) => {
       // Handle both File objects and string URLs
       if (typeof file === 'string') {
         // It's a URL string (existing image or video)
-        console.log(`File ${index} is string:`, file.substring(0, 100) + '...');
         
         // Check for video placeholders and thumbnails
         const isVideoPlaceholder = file.includes('AAAAIGZ0eXBpc3RAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAG1tZGF0AAACmwYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSB3aWRlbXkgKEFueS1kZWZpbml0aW9uIHdpbGwgYmUgb3ZlcnJpZGRlbiBieSB0aGUgZmluYWwgb3V0cHV0IHBhcmFtZXRlcnMpIC0gVW5jb21wcmVzc2VkLiBUaGUgZmlsZSBtdXN0IGJlIGRlY29kZWQgYnkgYSB2aWRlbyBkZWNvZGVyIHRoYXQgc3VwcG9ydHMgdGhlIGNvZGVjLg==') || file.includes('VmlkZW8gUGxhY2Vob2xkZXI=') || file.includes('Video Placeholder');
         
-        // Check if this is a video thumbnail (JPEG that represents a video)
-        // REMOVED: Large JPEGs are NOT video thumbnails - they are just large photos
-        const isVideoThumbnail = false; // Disabled incorrect detection
-        
-        // DEBUG: Log the actual file content to understand what we're dealing with
-        console.log(`File ${index} starts with:`, file.substring(0, 50));
-        console.log(`File ${index} contains 'data:image/jpeg':`, file.includes('data:image/jpeg'));
-        console.log(`File ${index} contains 'data:video/':`, file.includes('data:video/'));
-        console.log(`File ${index} is video placeholder:`, isVideoPlaceholder);
-        
         // STRICT DETECTION: Only data:video/ URLs are videos, everything else is an image
         if (file.startsWith('data:video/') || file.startsWith('https://firebasestorage.googleapis.com/')) {
-          console.log(`File ${index} detected as video (data:video/ or Firebase Storage)`);
           return {
             url: file,
             type: 'video'
@@ -1228,31 +1237,26 @@ const Home = () => {
         } else if (file.startsWith('data:image/')) {
           // Check if this is our video placeholder (SVG with placeholder text)
           if (isVideoPlaceholder) {
-            console.log(`File ${index} detected as video placeholder`);
             return {
               url: file,
               type: 'video'
             };
           }
           // ALL data:image/ URLs are images (including JPEG, PNG, etc.)
-          console.log(`File ${index} detected as image (data:image/)`);
           return {
             url: file,
             type: 'image'
           };
         } else {
           // For other URL types, try to detect by file extension or content
-          console.log(`File ${index} unknown data type, checking extension...`);
           const lowerFile = file.toLowerCase();
           if (lowerFile.includes('.mp4') || lowerFile.includes('.mov') || lowerFile.includes('.avi') || 
               lowerFile.includes('.webm') || lowerFile.includes('.mkv') || lowerFile.includes('video')) {
-            console.log(`File ${index} detected as video by extension/content`);
             return {
               url: file,
               type: 'video'
             };
           } else {
-            console.log(`File ${index} detected as image by default`);
             return {
               url: file,
               type: 'image'
@@ -1261,14 +1265,12 @@ const Home = () => {
         }
       } else if (file instanceof File) {
         // It's a File object (new upload)
-        console.log(`File ${index} is File object:`, file.type);
         return {
           file,
           type: file.type.startsWith('video/') ? 'video' : 'image'
         };
       } else {
         // Fallback for other types
-        console.warn('Unknown file type:', file);
         return {
           url: file,
           type: 'image'
@@ -1500,7 +1502,6 @@ const Home = () => {
                       (() => {
                         // Extract city, state, and country from location
                         const locationParts = concert.location.split(',');
-                        console.log('Location parts:', locationParts); // Debug
                         
                         // Find the city, state, and country parts
                         let city = '';

@@ -12,18 +12,15 @@ console.log('🔧 VITE_SPOTIFY_CLIENT_SECRET:', import.meta.env.VITE_SPOTIFY_CLI
 console.log('🔧 VITE_USE_MOCK_DATA:', import.meta.env.VITE_USE_MOCK_DATA);
 
 export const API_CONFIG = {
-  // Last.fm API for artist search
-  LASTFM_API_KEY: import.meta.env.VITE_LASTFM_API_KEY || 'YOUR_LASTFM_API_KEY',
-  
-  // Google Places API for venue search
-  GOOGLE_PLACES_API_KEY: import.meta.env.VITE_GOOGLE_PLACES_API_KEY || 'YOUR_GOOGLE_PLACES_API_KEY',
-  
-  // Spotify API for artist images
+  // Spotify API for artist search and images
   SPOTIFY_CLIENT_ID: import.meta.env.VITE_SPOTIFY_CLIENT_ID || 'YOUR_SPOTIFY_CLIENT_ID',
   SPOTIFY_CLIENT_SECRET: import.meta.env.VITE_SPOTIFY_CLIENT_SECRET || 'YOUR_SPOTIFY_CLIENT_SECRET',
   
-  // Feature flags - default to false (use real APIs) unless explicitly set to 'true'
-  USE_MOCK_DATA: import.meta.env.VITE_USE_MOCK_DATA === 'true',
+  // Google Places API for venue search
+  GOOGLE_PLACES_API_KEY: import.meta.env.VITE_GOOGLE_PLACES_API_KEY || '',
+  
+  // Feature flags - force real APIs, ignore environment variable
+  USE_MOCK_DATA: false, // Always use real APIs
   
   // Search settings
   SEARCH_DEBOUNCE_MS: 300,
@@ -33,15 +30,15 @@ export const API_CONFIG = {
 
 // Instructions for setting up real APIs:
 export const API_SETUP_INSTRUCTIONS = {
-  lastfm: {
-    url: 'https://www.last.fm/api/account/create',
+  spotify: {
+    url: 'https://developer.spotify.com/documentation/web-api',
     steps: [
-      '1. Go to https://www.last.fm/api/account/create',
-      '2. Create a free account',
-      '3. Get your API key',
-      '4. Add it to your .env file as VITE_LASTFM_API_KEY=your_key_here',
+      '1. Go to https://developer.spotify.com/dashboard',
+      '2. Create a new app',
+      '3. Get your Client ID and Client Secret',
+      '4. Add them to your .env file as VITE_SPOTIFY_CLIENT_ID=your_id_here and VITE_SPOTIFY_CLIENT_SECRET=your_secret_here',
     ],
-    features: ['Artist search', 'Artist images', 'Listener counts']
+    features: ['Artist search', 'Artist profile images', 'High-quality artist photos', 'Genre information', 'Popularity data']
   },
   googlePlaces: {
     url: 'https://developers.google.com/maps/documentation/places/web-service/get-api-key',
@@ -52,15 +49,5 @@ export const API_SETUP_INSTRUCTIONS = {
       '4. Add it to your .env file as VITE_GOOGLE_PLACES_API_KEY=your_key_here',
     ],
     features: ['Venue search', 'Address information', 'Geolocation']
-  },
-  spotify: {
-    url: 'https://developer.spotify.com/documentation/web-api',
-    steps: [
-      '1. Go to https://developer.spotify.com/dashboard',
-      '2. Create a new app',
-      '3. Get your Client ID and Client Secret',
-      '4. Add them to your .env file as VITE_SPOTIFY_CLIENT_ID=your_id_here and VITE_SPOTIFY_CLIENT_SECRET=your_secret_here',
-    ],
-    features: ['Artist profile images', 'High-quality artist photos']
   }
 }; 

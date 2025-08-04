@@ -140,13 +140,25 @@ const Autocomplete: React.FC<AutocompleteProps> = ({
                 key={`${option.id}-${index}`}
                 className={`${styles.option} ${
                   index === highlightedIndex ? styles.highlighted : ''
-                }`}
+                } ${option.id === 'custom-venue' ? styles.customVenue : ''}`}
                 onClick={() => handleSelect(option)}
                 onMouseEnter={() => setHighlightedIndex(index)}
               >
-                <div className={styles.optionName}>{option.name}</div>
+                <div className={styles.optionName}>
+                  {option.id === 'custom-venue' ? (
+                    <span className={styles.customVenueText}>
+                      ✨ {option.name}
+                    </span>
+                  ) : (
+                    option.name
+                  )}
+                </div>
                 {option.subtitle && (
-                  <div className={styles.optionSubtitle}>{option.subtitle}</div>
+                  <div className={`${styles.optionSubtitle} ${
+                    option.id === 'custom-venue' ? styles.customVenueSubtitle : ''
+                  }`}>
+                    {option.subtitle}
+                  </div>
                 )}
               </div>
             ))

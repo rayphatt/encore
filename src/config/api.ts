@@ -9,6 +9,7 @@
 console.log('🔧 API Config Debug:');
 console.log('🔧 VITE_SPOTIFY_CLIENT_ID:', import.meta.env.VITE_SPOTIFY_CLIENT_ID ? 'SET' : 'NOT SET');
 console.log('🔧 VITE_SPOTIFY_CLIENT_SECRET:', import.meta.env.VITE_SPOTIFY_CLIENT_SECRET ? 'SET' : 'NOT SET');
+console.log('🔧 VITE_GOOGLE_PLACES_API_KEY:', import.meta.env.VITE_GOOGLE_PLACES_API_KEY ? 'SET' : 'NOT SET');
 console.log('🔧 VITE_USE_MOCK_DATA:', import.meta.env.VITE_USE_MOCK_DATA);
 
 export const API_CONFIG = {

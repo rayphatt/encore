@@ -416,7 +416,8 @@ class SearchService {
   }
 
   private async searchVenuesGooglePlaces(query: string): Promise<VenueSearchResult[]> {
-    const apiKey = import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
+    const apiKey = this.googlePlacesApiKey;
+    console.log('🌐 Google Places: API key check -', apiKey ? 'SET' : 'NOT SET');
     if (!apiKey || apiKey === 'YOUR_GOOGLE_PLACES_API_KEY') {
       console.log('🌐 Google Places: No API key available - Get one at https://developers.google.com/maps/documentation/places/web-service/get-api-key');
       return [];
@@ -459,26 +460,20 @@ class SearchService {
     try {
       console.log('🌐 Nominatim: Searching for venues:', query);
       
-      // Try multiple search strategies - be more flexible with venue types
+      // Try multiple search strategies to find specific venues
       const searchStrategies = [
         // Strategy 1: Direct search with the exact query
         query,
-        // Strategy 2: Add common venue suffixes
-        `${query} arena`,
-        `${query} stadium`,
-        `${query} center`,
-        `${query} hall`,
-        `${query} theater`,
-        `${query} amphitheater`,
-        `${query} auditorium`,
+        // Strategy 2: Search for specific venue types that might match
+        `${query} terminal`,
+        `${query} warehouse`,
+        `${query} factory`,
+        `${query} building`,
+        `${query} complex`,
+        // Strategy 3: Location-based search for venues
         `${query} venue`,
-        `${query} concert hall`,
-        `${query} music hall`,
-        `${query} performing arts center`,
-        // Strategy 3: Location-based search
         `${query} concert venue`,
-        `${query} entertainment venue`,
-        `${query} event venue`
+        `${query} entertainment venue`
       ];
       
       const allResults: VenueSearchResult[] = [];
@@ -510,29 +505,12 @@ class SearchService {
             const type = item.type?.toLowerCase() || '';
             const searchLower = query.toLowerCase();
             
-            // Check if it's a venue-type location or contains venue keywords
-            const isVenue = type === 'amenity' || 
-                           displayName.includes('theatre') ||
-                           displayName.includes('theater') ||
-                           displayName.includes('arena') ||
-                           displayName.includes('hall') ||
-                           displayName.includes('center') ||
-                           displayName.includes('stadium') ||
-                           displayName.includes('amphitheater') ||
-                           displayName.includes('auditorium') ||
-                           displayName.includes('concert') ||
-                           displayName.includes('venue') ||
-                           displayName.includes('club') ||
-                           displayName.includes('bar') ||
-                           displayName.includes('pub') ||
-                           displayName.includes('music') ||
-                           displayName.includes('performing') ||
-                           displayName.includes('entertainment');
-            
             // Check if the venue name contains the search query
             const matchesQuery = name.includes(searchLower) || displayName.includes(searchLower);
             
-            return isVenue && matchesQuery;
+            // Be more inclusive - accept any location that matches the query
+            // This will help find specific venues like "Red Hook Grain Terminal"
+            return matchesQuery;
           });
           
           const results = filtered.map((item: any) => ({
@@ -582,11 +560,10 @@ class SearchService {
   }
 
   private async searchVenuesSuggestions(query: string): Promise<VenueSearchResult[]> {
-    // Generate venue suggestions based on common venue patterns
+    // Only show custom venue option when no real venues are found
     const suggestions: VenueSearchResult[] = [];
-    const searchLower = query.toLowerCase();
     
-    // Add a "custom venue" option first
+    // Add a "custom venue" option
     suggestions.push({
       id: 'custom-venue',
       name: `"${query}" (Custom Venue)`,
@@ -595,56 +572,7 @@ class SearchService {
       longitude: null
     });
     
-    // Common venue suffixes for concert venues
-    const suffixes = ['Arena', 'Theater', 'Theatre', 'Center', 'Hall', 'Stadium', 'Amphitheater', 'Auditorium'];
-    
-    for (const suffix of suffixes) {
-      const venueName = `${query} ${suffix}`;
-      suggestions.push({
-        id: `suggestion_${venueName.replace(/\s+/g, '_')}`,
-        name: venueName,
-        location: 'Suggested venue - add your location',
-        latitude: null,
-        longitude: null
-      });
-    }
-    
-    // Add some common venue patterns based on the query
-    const commonVenues = [
-      `${query} Arena`,
-      `${query} Stadium`,
-      `${query} Center`,
-      `${query} Theater`,
-      `${query} Theatre`,
-      `${query} Hall`,
-      `${query} Amphitheater`,
-      `${query} Auditorium`,
-      `${query} Concert Hall`,
-      `${query} Music Hall`,
-      `${query} Performing Arts Center`,
-      `${query} Convention Center`,
-      `${query} Civic Center`,
-      `${query} Community Center`,
-      `${query} University Auditorium`,
-      `${query} High School Gymnasium`,
-      `${query} Fairgrounds`,
-      `${query} Festival Grounds`
-    ];
-    
-    commonVenues.forEach(venueName => {
-      suggestions.push({
-        id: `suggestion_${venueName.replace(/\s+/g, '_')}`,
-        name: venueName,
-        location: 'Suggested venue - add your location',
-        latitude: null,
-        longitude: null
-      });
-    });
-    
-    // Filter suggestions that match the query
-    return suggestions.filter(venue => 
-      venue.name.toLowerCase().includes(searchLower)
-    );
+    return suggestions;
   }
 
   private removeDuplicateVenues(venues: VenueSearchResult[]): VenueSearchResult[] {

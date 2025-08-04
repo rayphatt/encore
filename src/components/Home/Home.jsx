@@ -389,6 +389,7 @@ const Home = () => {
       setNewConcertData(prev => ({ 
         ...prev, 
         artist: newConcertData.artist, // Keep only main artist
+        location: newConcertData.location, // Preserve location data
         notes: updatedNotes,
         additionalArtists: additionalArtists // Store for later opener ratings
       }));
@@ -529,6 +530,7 @@ const Home = () => {
         setNewConcertData({
           artist: '',
           venue: '',
+          location: '',
           date: '',
           notes: '',
           images: []

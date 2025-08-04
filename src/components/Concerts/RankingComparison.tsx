@@ -120,6 +120,15 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
 
   const handleComparison = (isBetter: boolean) => {
     const currentConcert = comparisonConcerts[currentComparison];
+    
+    // Safety check
+    if (!currentConcert) {
+      console.log('🎯 No current concert found in handleComparison');
+      const finalRating = calculateRating();
+      onComplete(Number(finalRating.toFixed(1)));
+      return;
+    }
+    
     if (isBetter) {
       setBetterThan([...betterThan, currentConcert.id]);
     } else {
@@ -144,8 +153,25 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
 
 
 
+  // Safety check - if no comparison concerts, use default rating
+  if (comparisonConcerts.length === 0) {
+    console.log('🎯 No comparison concerts found - using default rating');
+    const { min, max } = getBracketBoundaries(selectedBracket);
+    const defaultRating = (min + max) / 2;
+    onComplete(Number(defaultRating.toFixed(1)));
+    return null;
+  }
+
   const comparisonConcert = comparisonConcerts[currentComparison];
   const concertNumber = existingConcerts.length + 1;
+
+  // Safety check - if current comparison is out of bounds
+  if (!comparisonConcert) {
+    console.log('🎯 Current comparison out of bounds, completing with current rating');
+    const finalRating = calculateRating();
+    onComplete(Number(finalRating.toFixed(1)));
+    return null;
+  }
 
   console.log('🎯 Rendering comparison UI with:', {
     comparisonConcertsLength: comparisonConcerts.length,

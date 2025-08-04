@@ -918,7 +918,7 @@ const Home = () => {
       setNewConcertData(prev => ({ 
         ...prev, 
         venue: venue.name,
-        location: venue.subtitle || venue.city || 'Unknown City'
+        location: venue.location || venue.subtitle || venue.city || 'Unknown City'
       }));
     }
     setVenueOptions([]); // Clear options to stop suggestions
@@ -963,7 +963,7 @@ const Home = () => {
       setEditingConcert(prev => ({ 
         ...prev, 
         venue: venue.name,
-        location: venue.subtitle || venue.city || 'Unknown City'
+        location: venue.location || venue.subtitle || venue.city || 'Unknown City'
       }));
     }
     setVenueOptions([]); // Clear options to stop suggestions

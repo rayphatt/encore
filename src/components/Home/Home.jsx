@@ -14,7 +14,7 @@ import { useConcerts } from '../../contexts/ConcertContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { searchService } from '../../services/search';
-import { getRatingColor, getRatingBackgroundColor } from '../../utils/ratingColors';
+import { getRatingColor, getRatingBackgroundColor, getBracketFromRating } from '../../utils/ratingColors';
 import ArtistImage from '../UI/ArtistImage/ArtistImage';
 import ArtistLinks from '../UI/ArtistLinks/ArtistLinks';
 import Carousel from '../UI/Carousel/Carousel';
@@ -455,12 +455,17 @@ const Home = () => {
     setSelectedBracket(bracket);
     setShowBracketSelection(false);
     
-    // Show ranking comparison for existing concerts with ratings
-    const concertsWithRatings = personalConcerts.filter(concert => concert.rating);
-    if (concertsWithRatings.length >= 3) {
+    // Check if there are concerts in the same bracket to compare against
+    const concertsInSameBracket = personalConcerts.filter(concert => {
+      const concertBracket = concert.bracket || getBracketFromRating(concert.rating || 0);
+      return concertBracket === bracket;
+    });
+    
+    // If there are concerts in the same bracket, show ranking comparison
+    if (concertsInSameBracket.length > 0) {
       setShowRankingComparison(true);
     } else {
-      // For first 3 concerts, show rating prompt
+      // For first concert in a bracket or no concerts in same bracket, show rating prompt
       setShowFirstConcertRating(true);
     }
   };

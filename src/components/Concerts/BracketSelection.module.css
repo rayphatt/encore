@@ -45,8 +45,8 @@
 }
 
 .bracketOptions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  display: flex;
+  justify-content: center;
   gap: 1rem;
   margin-bottom: 2rem;
 }
@@ -84,7 +84,8 @@
   }
   
   .bracketOptions {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: center;
   }
   
   .title {

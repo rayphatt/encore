@@ -33,6 +33,7 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
   const [betterThan, setBetterThan] = useState<string[]>([]);
   const [worseThan, setWorseThan] = useState<string[]>([]);
   const [comparisonConcerts, setComparisonConcerts] = useState<Concert[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Filter concerts by bracket and sort by rating
   useEffect(() => {
@@ -83,6 +84,7 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
     
     console.log('🎯 finalComparisonConcerts:', finalComparisonConcerts.length);
     setComparisonConcerts(finalComparisonConcerts);
+    setIsLoading(false);
   }, [existingConcerts, selectedBracket]);
   
   const totalComparisons = Math.min(5, comparisonConcerts.length);
@@ -152,6 +154,16 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
   };
 
 
+
+  // Show loading state while processing
+  if (isLoading) {
+    return (
+      <div className={styles.container}>
+        <h2 className={styles.title}>Preparing comparisons...</h2>
+        <p className={styles.subtitle}>Finding the best concerts to compare against</p>
+      </div>
+    );
+  }
 
   // Safety check - if no comparison concerts, use default rating
   if (comparisonConcerts.length === 0) {

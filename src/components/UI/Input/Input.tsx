@@ -10,8 +10,8 @@ interface InputProps {
   placeholder?: string;
   disabled?: boolean;
   error?: string;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onBlur?: (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   required?: boolean;
   className?: string;
 }
@@ -34,6 +34,7 @@ const Input: React.FC<InputProps> = ({
   
   const inputClasses = [
     styles.input,
+    type === 'textarea' && styles.textarea,
     error && styles.error,
     className
   ].filter(Boolean).join(' ');
@@ -46,18 +47,33 @@ const Input: React.FC<InputProps> = ({
           {required && ' *'}
         </label>
       )}
-      <input
-        id={inputId}
-        name={name} // Add name attribute to input
-        type={type}
-        value={value}
-        placeholder={placeholder}
-        disabled={disabled}
-        onChange={onChange}
-        onBlur={onBlur}
-        required={required}
-        className={inputClasses}
-      />
+      {type === 'textarea' ? (
+        <textarea
+          id={inputId}
+          name={name}
+          value={value}
+          placeholder={placeholder}
+          disabled={disabled}
+          onChange={onChange}
+          onBlur={onBlur}
+          required={required}
+          className={inputClasses}
+          rows={4}
+        />
+      ) : (
+        <input
+          id={inputId}
+          name={name} // Add name attribute to input
+          type={type}
+          value={value}
+          placeholder={placeholder}
+          disabled={disabled}
+          onChange={onChange}
+          onBlur={onBlur}
+          required={required}
+          className={inputClasses}
+        />
+      )}
       {error && <span className={styles.errorMessage}>{error}</span>}
     </div>
   );

@@ -36,10 +36,17 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
   
   // Filter concerts by bracket and sort by rating
   useEffect(() => {
+    console.log('🎯 RankingComparison useEffect - filtering concerts');
+    console.log('🎯 existingConcerts:', existingConcerts.length);
+    console.log('🎯 selectedBracket:', selectedBracket);
+    
     const bracketConcerts = existingConcerts.filter(concert => {
       const concertBracket = concert.bracket || getBracketFromRating(concert.rating || 0);
+      console.log('🎯 Concert:', concert.artist, 'Bracket:', concertBracket, 'Expected:', selectedBracket);
       return concertBracket === selectedBracket;
     });
+    
+    console.log('🎯 bracketConcerts found:', bracketConcerts.length);
     
     // If not enough concerts in the same bracket, include concerts from adjacent brackets
     let finalComparisonConcerts = [...bracketConcerts];
@@ -52,6 +59,7 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
       finalComparisonConcerts = [...finalComparisonConcerts, ...additionalConcerts.slice(0, 3 - finalComparisonConcerts.length)];
     }
     
+    console.log('🎯 finalComparisonConcerts:', finalComparisonConcerts.length);
     setComparisonConcerts(finalComparisonConcerts);
   }, [existingConcerts, selectedBracket]);
   
@@ -113,6 +121,7 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
   };
 
   if (comparisonConcerts.length === 0) {
+    console.log('🎯 No comparison concerts found - using default rating');
     // If no concerts to compare against, use bracket boundaries to calculate a default rating
     const { min, max } = getBracketBoundaries(selectedBracket);
     const defaultRating = (min + max) / 2;
@@ -122,6 +131,13 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
 
   const comparisonConcert = comparisonConcerts[currentComparison];
   const concertNumber = existingConcerts.length + 1;
+
+  console.log('🎯 Rendering comparison UI with:', {
+    comparisonConcertsLength: comparisonConcerts.length,
+    currentComparison,
+    comparisonConcert: comparisonConcert?.artist,
+    newConcert: newConcert.artist
+  });
 
   return (
     <div className={styles.container}>

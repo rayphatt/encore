@@ -32,6 +32,10 @@ class SearchService {
   // For development, we'll use mock data until you get API keys
   private useMockData = Boolean(API_CONFIG.USE_MOCK_DATA);
 
+  // Simple cache for venue searches to prevent duplicate API calls
+  private venueSearchCache = new Map<string, { results: VenueSearchResult[], timestamp: number }>();
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
   // Mock artist data for development
   private mockArtists = [
     { id: '1', name: 'The Beatles', subtitle: 'Rock Band' },
@@ -335,84 +339,100 @@ class SearchService {
 
   async searchVenues(query: string): Promise<VenueSearchResult[]> {
     console.log('🏟️ Searching venues for:', query);
-    console.log('🔧 Using mock data:', this.useMockData);
     
-    // Force real APIs - ignore mock data setting
-    // Always try real APIs first
-
-    // Try real API first, fallback to mock data
-    try {
-      console.log('🌐 Using real venue API');
-      const realResults = await this.searchVenuesReal(query);
-      
-      console.log('🌐 Real API returned', realResults.length, 'venues');
-      
-      // If real API returns results, use them
-      if (realResults.length > 0) {
-        console.log('🌐 Using real API results:', realResults.length, 'venues found');
-        return realResults;
-      }
-      
-      // If no real results, fallback to mock data
-      console.log('📋 No real API results, falling back to mock data');
-      return this.searchVenuesMock(query);
-    } catch (error) {
-      console.error('❌ Error with real venue API:', error);
-      console.log('📋 Falling back to mock data');
+    // Prevent empty or very short queries
+    if (!query || query.trim().length < 2) {
+      console.log('🏟️ Query too short, returning empty results');
+      return [];
+    }
+    
+    // Check cache first
+    const cached = this.venueSearchCache.get(query);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
+      console.log('🏟️ Using cached venue results for:', query);
+      return cached.results;
+    }
+    
+    // Check if we should use mock data
+    console.log('🔧 Using mock data:', this.useMockData);
+    if (this.useMockData) {
+      console.log('🔧 Using mock venue data');
       return this.searchVenuesMock(query);
     }
+    
+    // Use real API
+    console.log('🌐 Using real venue API');
+    const results = await this.searchVenuesReal(query);
+    console.log('🌐 Real API returned', results.length, 'venues');
+    
+    // Add custom venue option if no results found
+    if (results.length === 0 && query.trim().length > 0) {
+      console.log('🌐 No venues found, adding custom venue option');
+      results.push({
+        id: 'custom-venue',
+        name: `"${query}" (Custom Venue)`,
+        location: 'Click to add this venue',
+        latitude: null,
+        longitude: null
+      });
+    }
+    
+    // Cache the results
+    const cacheEntry = { results, timestamp: Date.now() };
+    this.venueSearchCache.set(query, cacheEntry);
+    
+    console.log('🌐 Using real API results:', results.length, 'venues found');
+    return results;
   }
 
   private async searchVenuesReal(query: string): Promise<VenueSearchResult[]> {
     console.log('🌐 Real API: Starting venue search for:', query);
     
-    // Try multiple venue search strategies
-    const results: VenueSearchResult[] = [];
-    
-    // Strategy 1: Search in our mock venue database for real venues (most reliable)
-    try {
-      const databaseResults = await this.searchVenuesDatabase(query);
-      results.push(...databaseResults);
-      console.log('🌐 Database: Found', databaseResults.length, 'venues');
-    } catch (error) {
-      console.log('🌐 Database: Failed, trying alternatives');
+    // Prevent excessive API calls for very short queries
+    if (!query || query.trim().length < 2) {
+      console.log('🌐 Real API: Query too short, skipping search');
+      return [];
     }
     
-    // Strategy 2: Enhanced Nominatim search with better query formatting
-    try {
-      const nominatimResults = await this.searchVenuesNominatim(query);
-      results.push(...nominatimResults);
-      console.log('🌐 Nominatim: Found', nominatimResults.length, 'venues');
-    } catch (error) {
-      console.log('🌐 Nominatim: Failed, trying alternatives');
+    // Check cache first
+    const cached = this.venueSearchCache.get(query);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
+      console.log('🌐 Using cached venue results for:', query);
+      return cached.results;
     }
+
+    // Collect results from multiple sources
+    const allVenues: VenueSearchResult[] = [];
     
-    // Strategy 3: Google Places API (CORS issues in browser, try last)
     try {
-      const googleResults = await this.searchVenuesGooglePlaces(query);
-      results.push(...googleResults);
-      console.log('🌐 Google Places: Found', googleResults.length, 'venues');
+      // 1. First try database (fastest)
+      console.log('🌐 Database: Searching...');
+      const databaseVenues = await this.searchVenuesDatabase(query);
+      console.log('🌐 Database: Found', databaseVenues.length, 'venues');
+      allVenues.push(...databaseVenues);
+      
+      // 2. Then try Nominatim (free, no CORS issues)
+      console.log('🌐 Nominatim: Searching...');
+      const nominatimVenues = await this.searchVenuesNominatim(query);
+      console.log('🌐 Nominatim: Found', nominatimVenues.length, 'venues');
+      allVenues.push(...nominatimVenues);
+      
+      // 3. Skip Google Places in browser due to CORS issues
+      // Google Places API requires server-side calls or a proxy
+      console.log('🌐 Google Places: Skipping (CORS issues in browser)');
+      
     } catch (error) {
-      console.log('🌐 Google Places: Failed, trying alternatives');
-    }
-    
-    // Strategy 4: Simple venue suggestions based on common patterns (only if no real venues found)
-    if (results.length === 0) {
-      try {
-        const suggestionResults = await this.searchVenuesSuggestions(query);
-        results.push(...suggestionResults);
-        console.log('🌐 Suggestions: Found', suggestionResults.length, 'venues');
-      } catch (error) {
-        console.log('🌐 Suggestions: Failed');
-      }
+      console.log('🌐 Real API: Error during search:', error);
     }
     
     // Remove duplicates and sort by relevance
-    const uniqueResults = this.removeDuplicateVenues(results);
-    const sortedResults = this.sortVenuesByRelevance(uniqueResults, query);
+    const uniqueVenues = this.removeDuplicateVenues(allVenues);
+    const sortedVenues = this.sortVenuesByRelevance(uniqueVenues, query);
     
-    console.log('🌐 Real API: Total unique venues found:', sortedResults.length);
-    return sortedResults;
+    console.log('🌐 Real API: Total unique venues found:', sortedVenues.length);
+    const cacheEntry = { results: sortedVenues, timestamp: Date.now() };
+    this.venueSearchCache.set(query, cacheEntry);
+    return sortedVenues.slice(0, 10); // Limit to 10 results
   }
 
   private async searchVenuesGooglePlaces(query: string): Promise<VenueSearchResult[]> {
@@ -465,64 +485,81 @@ class SearchService {
       const searchStrategies = [
         // Strategy 1: Direct search with the exact query
         query,
-        // Strategy 2: Add common venue terms if query is short
-        ...(query.length < 10 ? [`${query} venue`, `${query} terminal`] : [])
+        // Strategy 2: Add common venue terms for better results
+        `${query} stadium`,
+        `${query} arena`,
+        `${query} theater`,
+        `${query} amphitheater`
       ];
       
       const allResults: VenueSearchResult[] = [];
       
       for (const searchTerm of searchStrategies) {
-        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchTerm)}&format=json&limit=10&addressdetails=1&extratags=1`;
-        
-        const response = await fetch(url, {
-          headers: {
-            'User-Agent': 'EncoreApp/1.0'
-          }
-        });
-        
-        if (!response.ok) {
-          console.log(`🌐 Nominatim: Failed for "${searchTerm}" - ${response.status}`);
-          continue;
-        }
-        
-        const data = await response.json();
-        
-        // Add a smaller delay between requests to respect rate limits
-        if (searchTerm !== searchStrategies[searchStrategies.length - 1]) {
-          await new Promise(resolve => setTimeout(resolve, 50));
-        }
-        if (Array.isArray(data) && data.length > 0) {
-          const filtered = data.filter((item: any) => {
-            const name = item.name?.toLowerCase() || '';
-            const displayName = item.display_name?.toLowerCase() || '';
-            const type = item.type?.toLowerCase() || '';
-            const searchLower = query.toLowerCase();
-            
-            // Check if the venue name contains the search query
-            const matchesQuery = name.includes(searchLower) || displayName.includes(searchLower);
-            
-            // Be more inclusive - accept any location that matches the query
-            // This will help find specific venues like "Red Hook Grain Terminal"
-            return matchesQuery;
+        try {
+          const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchTerm)}&format=json&limit=3&addressdetails=1&extratags=1`;
+          
+          const response = await fetch(url, {
+            headers: {
+              'User-Agent': 'EncoreApp/1.0'
+            }
           });
           
-          const results = filtered.map((item: any) => ({
-            id: `nominatim_${item.place_id}`,
-            name: item.name || item.display_name.split(',')[0],
-            location: item.display_name,
-            latitude: parseFloat(item.lat),
-            longitude: parseFloat(item.lon)
-          }));
+          if (!response.ok) {
+            console.log(`🌐 Nominatim: Failed for "${searchTerm}" - ${response.status}`);
+            continue;
+          }
           
-          allResults.push(...results);
+          const data = await response.json();
+          
+          // Add a delay between requests to respect rate limits
+          if (searchTerm !== searchStrategies[searchStrategies.length - 1]) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+          
+          if (Array.isArray(data) && data.length > 0) {
+            const filtered = data.filter((item: any) => {
+              const name = item.name?.toLowerCase() || '';
+              const displayName = item.display_name?.toLowerCase() || '';
+              const searchLower = query.toLowerCase();
+              
+              // Check if the venue name contains the search query
+              const matchesQuery = name.includes(searchLower) || displayName.includes(searchLower);
+              
+              // Prioritize venues and entertainment locations
+              const isVenueType = displayName.includes('stadium') || 
+                                 displayName.includes('arena') || 
+                                 displayName.includes('theater') || 
+                                 displayName.includes('amphitheater') || 
+                                 displayName.includes('concert') || 
+                                 displayName.includes('music') ||
+                                 displayName.includes('venue');
+              
+              return matchesQuery && isVenueType;
+            });
+            
+            const results = filtered.map((item: any) => ({
+              id: `nominatim_${item.place_id}`,
+              name: item.name || item.display_name.split(',')[0],
+              location: item.display_name,
+              latitude: parseFloat(item.lat),
+              longitude: parseFloat(item.lon)
+            }));
+            
+            allResults.push(...results);
+          }
+        } catch (error) {
+          console.log(`🌐 Nominatim: Error for "${searchTerm}":`, error);
+          continue;
         }
       }
       
       // Remove duplicates and limit results
       const uniqueResults = this.removeDuplicateVenues(allResults);
-      return uniqueResults.slice(0, 10);
+      console.log('🌐 Nominatim: Found', uniqueResults.length, 'unique venues');
+      return uniqueResults.slice(0, 5); // Limit to 5 results from Nominatim
+      
     } catch (error) {
-      console.error('❌ Error with Nominatim API:', error);
+      console.log('🌐 Nominatim: Search failed:', error);
       return [];
     }
   }
@@ -532,6 +569,11 @@ class SearchService {
     const searchLower = query.toLowerCase();
     const results: VenueSearchResult[] = [];
     
+    // Prevent excessive results for very short queries
+    if (searchLower.length < 2) {
+      return results;
+    }
+    
     // Search through mock venues for matches
     for (const venue of this.mockVenues) {
       const venueName = venue.name.toLowerCase();
@@ -539,16 +581,21 @@ class SearchService {
       
       // Check if the venue name or location contains the search query
       if (venueName.includes(searchLower) || venueLocation.includes(searchLower)) {
-        results.push({
-          id: venue.id,
-          name: venue.name,
-          location: venue.subtitle || 'Unknown location',
-          latitude: null,
-          longitude: null
-        });
+        // Prevent adding the same venue multiple times
+        const existingVenue = results.find(r => r.name === venue.name);
+        if (!existingVenue) {
+          results.push({
+            id: venue.id,
+            name: venue.name,
+            location: venue.subtitle || 'Unknown location',
+            latitude: null,
+            longitude: null
+          });
+        }
       }
     }
     
+    console.log('🌐 Database: Found', results.length, 'venues');
     return results;
   }
 
@@ -570,14 +617,22 @@ class SearchService {
 
   private removeDuplicateVenues(venues: VenueSearchResult[]): VenueSearchResult[] {
     const seen = new Set<string>();
-    return venues.filter(venue => {
-      const key = venue.name.toLowerCase().trim();
-      if (seen.has(key)) {
-        return false;
+    const uniqueVenues: VenueSearchResult[] = [];
+    
+    for (const venue of venues) {
+      // Create a more robust key that includes both name and location
+      const key = `${venue.name.toLowerCase().trim()}_${venue.location?.toLowerCase().trim() || ''}`;
+      
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueVenues.push(venue);
+      } else {
+        console.log('🌐 Duplicate venue removed:', venue.name);
       }
-      seen.add(key);
-      return true;
-    });
+    }
+    
+    console.log('🌐 Removed duplicates:', venues.length - uniqueVenues.length, 'duplicates');
+    return uniqueVenues;
   }
 
   private sortVenuesByRelevance(venues: VenueSearchResult[], query: string): VenueSearchResult[] {
@@ -678,7 +733,20 @@ class SearchService {
     this.spotifyClientId = spotifyClientId;
     this.spotifyClientSecret = spotifyClientSecret;
     this.googlePlacesApiKey = googlePlacesKey;
-    this.useMockData = false;
+  }
+
+  // Clear venue search cache
+  clearVenueCache() {
+    this.venueSearchCache.clear();
+    console.log('🏟️ Venue search cache cleared');
+  }
+
+  // Get cache statistics
+  getVenueCacheStats() {
+    return {
+      size: this.venueSearchCache.size,
+      entries: Array.from(this.venueSearchCache.keys())
+    };
   }
 }
 

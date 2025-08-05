@@ -1383,3 +1383,136 @@
     font-size: var(--font-size-body);
   }
 } 
+
+/* Mobile-first responsive design */
+@media (max-width: 768px) {
+  .home {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .stats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .viewToggle {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .toggleButton {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .concertGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .concertCard {
+    padding: 1rem;
+  }
+
+  .concertHeader {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .concertActions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .concertAction {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .imageGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .modal {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+
+  .modalContent {
+    padding: 1rem;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .artistInputs {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .artistInput {
+    flex: 1;
+  }
+
+  .addArtistButton {
+    align-self: stretch;
+  }
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+  .concertCard {
+    min-height: 44px;
+  }
+
+  .concertAction {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .toggleButton {
+    min-height: 44px;
+  }
+
+  .modalClose {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* High contrast for accessibility */
+@media (prefers-contrast: high) {
+  .concertCard {
+    border: 2px solid #000;
+  }
+
+  .toggleButton.active {
+    border: 2px solid #000;
+  }
+}
+
+/* Reduced motion for users with vestibular disorders */
+@media (prefers-reduced-motion: reduce) {
+  .concertCard {
+    transition: none;
+  }
+
+  .toggleButton {
+    transition: none;
+  }
+
+  .modal {
+    animation: none;
+  }
+} 

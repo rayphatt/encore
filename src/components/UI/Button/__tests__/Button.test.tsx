@@ -1,47 +1,83 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import Button from '../Button';
 
 describe('Button Component', () => {
   it('renders with default props', () => {
     render(<Button>Click me</Button>);
-    const button = screen.getByText('Click me');
+    const button = screen.getByRole('button', { name: 'Click me' });
     expect(button).toBeInTheDocument();
-    expect(button).not.toBeDisabled();
-    expect(button).not.toHaveClass('secondary');
+    expect(button).toHaveClass('button');
   });
 
-  it('renders as secondary button', () => {
-    render(<Button secondary>Secondary</Button>);
-    const button = screen.getByText('Secondary');
-    expect(button).toHaveClass('secondary');
+  it('renders with custom className', () => {
+    render(<Button className="custom-class">Click me</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('button', 'custom-class');
   });
 
-  it('renders as disabled button', () => {
-    render(<Button disabled>Disabled</Button>);
-    const button = screen.getByText('Disabled');
-    expect(button).toBeDisabled();
-  });
-
-  it('renders as full width button', () => {
-    render(<Button fullWidth>Full Width</Button>);
-    const button = screen.getByText('Full Width');
-    expect(button).toHaveClass('fullWidth');
-  });
-
-  it('calls onClick handler when clicked', () => {
+  it('handles click events', () => {
     const handleClick = jest.fn();
-    render(<Button onClick={handleClick}>Clickable</Button>);
-    const button = screen.getByText('Clickable');
+    render(<Button onClick={handleClick}>Click me</Button>);
+    const button = screen.getByRole('button');
+    
     fireEvent.click(button);
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call onClick handler when disabled', () => {
+  it('can be disabled', () => {
     const handleClick = jest.fn();
-    render(<Button disabled onClick={handleClick}>Disabled</Button>);
-    const button = screen.getByText('Disabled');
+    render(<Button disabled onClick={handleClick}>Click me</Button>);
+    const button = screen.getByRole('button');
+    
+    expect(button).toBeDisabled();
     fireEvent.click(button);
     expect(handleClick).not.toHaveBeenCalled();
+  });
+
+  it('shows loading state', () => {
+    render(<Button loading>Click me</Button>);
+    const button = screen.getByRole('button');
+    
+    expect(button).toBeDisabled();
+    expect(button).toHaveClass('loading');
+  });
+
+  it('renders with different variants', () => {
+    const { rerender } = render(<Button variant="primary">Primary</Button>);
+    expect(screen.getByRole('button')).toHaveClass('primary');
+
+    rerender(<Button variant="secondary">Secondary</Button>);
+    expect(screen.getByRole('button')).toHaveClass('secondary');
+
+    rerender(<Button variant="danger">Danger</Button>);
+    expect(screen.getByRole('button')).toHaveClass('danger');
+  });
+
+  it('renders with different sizes', () => {
+    const { rerender } = render(<Button size="small">Small</Button>);
+    expect(screen.getByRole('button')).toHaveClass('small');
+
+    rerender(<Button size="large">Large</Button>);
+    expect(screen.getByRole('button')).toHaveClass('large');
+  });
+
+  it('forwards ref correctly', () => {
+    const ref = React.createRef<HTMLButtonElement>();
+    render(<Button ref={ref}>Click me</Button>);
+    expect(ref.current).toBeInstanceOf(HTMLButtonElement);
+  });
+
+  it('renders with icon', () => {
+    render(<Button icon="🎵">Click me</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveTextContent('🎵');
+  });
+
+  it('is accessible with proper ARIA attributes', () => {
+    render(<Button aria-label="Add concert">Click me</Button>);
+    const button = screen.getByRole('button', { name: 'Add concert' });
+    expect(button).toBeInTheDocument();
   });
 }); 

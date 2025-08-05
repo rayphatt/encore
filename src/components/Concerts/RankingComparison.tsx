@@ -316,11 +316,6 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
             <p>{newConcert.location}</p>
             <p>{formatDate(newConcert.date)}</p>
           </div>
-          {newConcert.images?.[0] && (
-            <div className={styles.imageContainer}>
-              <img src={newConcert.images[0]} alt={`${newConcert.artist} concert`} />
-            </div>
-          )}
         </Card>
 
         <Card 
@@ -343,11 +338,6 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
           >
             Rating: {comparisonConcert.rating?.toFixed(1)}
           </div>
-          {comparisonConcert.images?.[0] && (
-            <div className={styles.imageContainer}>
-              <img src={comparisonConcert.images[0]} alt={`${comparisonConcert.artist} concert`} />
-            </div>
-          )}
         </Card>
       </div>
 

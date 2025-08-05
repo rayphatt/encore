@@ -90,32 +90,69 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
   const totalComparisons = Math.min(5, comparisonConcerts.length);
   
   const calculateRating = () => {
+    console.log('🎯 Calculating rating with:', {
+      betterThan: betterThan.length,
+      worseThan: worseThan.length,
+      betterRatings: betterThan.map(id => comparisonConcerts.find(c => c.id === id)?.rating),
+      worseRatings: worseThan.map(id => comparisonConcerts.find(c => c.id === id)?.rating)
+    });
+
     if (betterThan.length === 0 && worseThan.length === 0) {
       // Default to middle of bracket if no comparisons made
       const { min, max } = getBracketBoundaries(selectedBracket);
       return (min + max) / 2;
     }
 
-    const betterRatings = betterThan.map(id => 
-      comparisonConcerts.find(c => c.id === id)?.rating || 0
-    );
-    const worseRatings = worseThan.map(id => 
-      comparisonConcerts.find(c => c.id === id)?.rating || 0
-    );
-
     const { min, max } = getBracketBoundaries(selectedBracket);
 
-    if (betterRatings.length === 0) {
-      return Math.max(min, Math.min(...worseRatings) - 0.5);
-    }
-    if (worseRatings.length === 0) {
-      return Math.min(max, Math.max(...betterRatings) + 0.5);
+    // Get all comparison concerts with their ratings
+    const allComparisonRatings = comparisonConcerts
+      .map(concert => ({ id: concert.id, rating: concert.rating || 0 }))
+      .sort((a, b) => b.rating - a.rating); // Sort by rating descending
+
+    console.log('🎯 All comparison ratings:', allComparisonRatings);
+
+    if (betterThan.length === 0) {
+      // If not better than any, place below the worst
+      const worstRating = Math.min(...worseThan.map(id => 
+        comparisonConcerts.find(c => c.id === id)?.rating || 0
+      ));
+      return Math.max(min, worstRating - 0.5);
     }
 
-    const avgBetter = betterRatings.reduce((a, b) => a + b, 0) / betterRatings.length;
-    const avgWorse = worseRatings.reduce((a, b) => a + b, 0) / worseRatings.length;
-    const calculatedRating = (avgBetter + avgWorse) / 2;
-    
+    if (worseThan.length === 0) {
+      // If not worse than any, place above the best
+      const bestRating = Math.max(...betterThan.map(id => 
+        comparisonConcerts.find(c => c.id === id)?.rating || 0
+      ));
+      return Math.min(max, bestRating + 0.5);
+    }
+
+    // Find the position between better and worse concerts
+    const betterRatings = betterThan.map(id => 
+      comparisonConcerts.find(c => c.id === id)?.rating || 0
+    ).sort((a, b) => b - a); // Sort descending
+
+    const worseRatings = worseThan.map(id => 
+      comparisonConcerts.find(c => c.id === id)?.rating || 0
+    ).sort((a, b) => b - a); // Sort descending
+
+    console.log('🎯 Better ratings (sorted):', betterRatings);
+    console.log('🎯 Worse ratings (sorted):', worseRatings);
+
+    // Calculate position: above the worst of better, below the best of worse
+    const worstOfBetter = Math.min(...betterRatings);
+    const bestOfWorse = Math.max(...worseRatings);
+
+    // Position the new concert between these two points
+    const calculatedRating = (worstOfBetter + bestOfWorse) / 2;
+
+    console.log('🎯 Rating calculation:', {
+      worstOfBetter,
+      bestOfWorse,
+      calculatedRating
+    });
+
     // Ensure rating stays within bracket boundaries
     return Math.max(min, Math.min(max, calculatedRating));
   };

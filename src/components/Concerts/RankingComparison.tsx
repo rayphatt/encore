@@ -152,19 +152,19 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
     console.log('🎯 Better ratings (sorted):', betterRatings);
     console.log('🎯 Worse ratings (sorted):', worseRatings);
 
-    // Calculate position: above the worst of better, below the best of worse
-    const worstOfBetter = Math.min(...betterRatings);
+    // Calculate position: above the HIGHEST of better, below the best of worse
+    const highestOfBetter = Math.max(...betterRatings);
     const bestOfWorse = Math.max(...worseRatings);
 
-    // Position the new concert ABOVE the concerts it was ranked better than
-    // This ensures it gets a higher rating than those concerts
-    const calculatedRating = worstOfBetter + 0.5;
+    // Position the new concert ABOVE ALL the concerts it was ranked better than
+    // This ensures it gets a higher rating than ALL of those concerts
+    const calculatedRating = highestOfBetter + 0.5;
 
     console.log('🎯 Rating calculation:', {
-      worstOfBetter,
+      highestOfBetter,
       bestOfWorse,
       calculatedRating,
-      explanation: 'Positioned above worst of better concerts'
+      explanation: 'Positioned above HIGHEST of better concerts'
     });
 
     // Ensure rating stays within bracket boundaries

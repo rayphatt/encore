@@ -29,6 +29,8 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
     isEarlyConcert
   });
   
+  console.log('🎯 DEBUG: New debugging code is running!');
+  
   const [currentComparison, setCurrentComparison] = useState<number>(0);
   const [betterThan, setBetterThan] = useState<string[]>([]);
   const [worseThan, setWorseThan] = useState<string[]>([]);
@@ -168,6 +170,8 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
   };
 
   const handleComparison = (isBetter: boolean) => {
+    console.log('🎯 DEBUG: handleComparison function called!');
+    
     const currentConcert = comparisonConcerts[currentComparison];
     
     console.log('🎯 handleComparison called:', {

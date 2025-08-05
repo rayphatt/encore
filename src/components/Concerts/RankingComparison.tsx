@@ -163,16 +163,20 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
     if (betterRatings.length > 0 && worseRatings.length > 0) {
       // Has both "better" and "worse" relationships - position between them
       calculatedRating = (highestOfBetter + bestOfWorse) / 2;
+      console.log('🎯 Using BOTH logic: (', highestOfBetter, '+', bestOfWorse, ') / 2 =', calculatedRating);
     } else if (betterRatings.length > 0) {
       // Only "better" relationships - position above the highest
       calculatedRating = highestOfBetter + 0.5;
+      console.log('🎯 Using BETTER ONLY logic:', highestOfBetter, '+ 0.5 =', calculatedRating);
     } else if (worseRatings.length > 0) {
       // Only "worse" relationships - position below the lowest
       calculatedRating = bestOfWorse - 0.5;
+      console.log('🎯 Using WORSE ONLY logic:', bestOfWorse, '- 0.5 =', calculatedRating);
     } else {
       // No relationships (shouldn't happen) - use middle of bracket
       const bracketBoundaries = getBracketBoundaries(selectedBracket);
       calculatedRating = (bracketBoundaries.min + bracketBoundaries.max) / 2;
+      console.log('🎯 Using DEFAULT logic: middle of bracket =', calculatedRating);
     }
 
     console.log('🎯 Rating calculation:', {

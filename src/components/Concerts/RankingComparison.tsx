@@ -152,19 +152,38 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
     console.log('🎯 Better ratings (sorted):', betterRatings);
     console.log('🎯 Worse ratings (sorted):', worseRatings);
 
-    // Calculate position: above the HIGHEST of better, below the best of worse
+    // Calculate position: above the HIGHEST of better, below the BEST of worse
     const highestOfBetter = Math.max(...betterRatings);
     const bestOfWorse = Math.max(...worseRatings);
 
-    // Position the new concert ABOVE ALL the concerts it was ranked better than
-    // This ensures it gets a higher rating than ALL of those concerts
-    const calculatedRating = highestOfBetter + 0.5;
+    // Position the new concert between the highest "better" and lowest "worse"
+    // This ensures it respects BOTH relationships
+    let calculatedRating;
+    
+    if (betterRatings.length > 0 && worseRatings.length > 0) {
+      // Has both "better" and "worse" relationships - position between them
+      calculatedRating = (highestOfBetter + bestOfWorse) / 2;
+    } else if (betterRatings.length > 0) {
+      // Only "better" relationships - position above the highest
+      calculatedRating = highestOfBetter + 0.5;
+    } else if (worseRatings.length > 0) {
+      // Only "worse" relationships - position below the lowest
+      calculatedRating = bestOfWorse - 0.5;
+    } else {
+      // No relationships (shouldn't happen) - use middle of bracket
+      const bracketBoundaries = getBracketBoundaries(selectedBracket);
+      calculatedRating = (bracketBoundaries.min + bracketBoundaries.max) / 2;
+    }
 
     console.log('🎯 Rating calculation:', {
       highestOfBetter,
       bestOfWorse,
       calculatedRating,
-      explanation: 'Positioned above HIGHEST of better concerts'
+      explanation: betterRatings.length > 0 && worseRatings.length > 0 
+        ? 'Positioned between better and worse concerts'
+        : betterRatings.length > 0 
+        ? 'Positioned above HIGHEST of better concerts'
+        : 'Positioned below BEST of worse concerts'
     });
 
     // Ensure rating stays within bracket boundaries

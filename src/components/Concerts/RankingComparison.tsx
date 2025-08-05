@@ -87,6 +87,16 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
     setIsLoading(false);
   }, [existingConcerts, selectedBracket]);
   
+  // Debug state changes
+  useEffect(() => {
+    console.log('🎯 State updated:', {
+      betterThan: betterThan.length,
+      worseThan: worseThan.length,
+      currentComparison,
+      totalComparisons: Math.min(5, comparisonConcerts.length)
+    });
+  }, [betterThan, worseThan, currentComparison, comparisonConcerts.length]);
+  
   const totalComparisons = Math.min(5, comparisonConcerts.length);
   
   const calculateRating = () => {
@@ -160,6 +170,15 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
   const handleComparison = (isBetter: boolean) => {
     const currentConcert = comparisonConcerts[currentComparison];
     
+    console.log('🎯 handleComparison called:', {
+      isBetter,
+      currentConcert: currentConcert?.artist,
+      currentComparison,
+      totalComparisons,
+      betterThan: betterThan.length,
+      worseThan: worseThan.length
+    });
+    
     // Safety check
     if (!currentConcert) {
       console.log('🎯 No current concert found in handleComparison');
@@ -169,15 +188,27 @@ const RankingComparison: React.FC<RankingComparisonProps> = ({
     }
     
     if (isBetter) {
-      setBetterThan([...betterThan, currentConcert.id]);
+      console.log('🎯 Adding to betterThan:', currentConcert.artist);
+      setBetterThan(prev => {
+        const newBetterThan = [...prev, currentConcert.id];
+        console.log('🎯 New betterThan:', newBetterThan);
+        return newBetterThan;
+      });
     } else {
-      setWorseThan([...worseThan, currentConcert.id]);
+      console.log('🎯 Adding to worseThan:', currentConcert.artist);
+      setWorseThan(prev => {
+        const newWorseThan = [...prev, currentConcert.id];
+        console.log('🎯 New worseThan:', newWorseThan);
+        return newWorseThan;
+      });
     }
 
     if (currentComparison + 1 < totalComparisons) {
       setCurrentComparison(prev => prev + 1);
     } else {
+      console.log('🎯 All comparisons complete, calculating final rating');
       const finalRating = calculateRating();
+      console.log('🎯 Final rating calculated:', finalRating);
       onComplete(Number(finalRating.toFixed(1)));
     }
   };
